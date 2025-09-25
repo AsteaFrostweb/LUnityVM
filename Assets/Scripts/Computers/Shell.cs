@@ -512,26 +512,23 @@ public class Shell : IAPILoader
         System.Threading.Thread.Sleep((int)(seconds * 1000));
     }
 
-    
+
 
     public void AddAPI(Lua lua)
     {
+        new LuaAPI(lua, "shell")
+            .RegisterFunction("clear", this, nameof(Clear))
+            .RegisterFunction("clearLine", this, nameof(ClearLine))
+            .RegisterFunction("read", this, nameof(ReadChar))
+            .RegisterFunction("readLine", this, nameof(ReadLine))
+            .RegisterFunction("run", this, nameof(Run))
+            .RegisterFunction("sleep", this, nameof(Sleep));
 
-        //Create shell api table and some shell specific commands
-        LuaTable shellAPI = Utility.CreateTable(lua, "shell");
-        //
-        shellAPI["clear"] = lua.RegisterFunction("shell.clear", this, typeof(Shell).GetMethod("Clear"));
-        shellAPI["clearLine"] = lua.RegisterFunction("shell.clearLine", this, typeof(Shell).GetMethod("ClearLine"));
-        shellAPI["read"] = lua.RegisterFunction("shell.read", this, typeof(Shell).GetMethod("ReadChar"));
-        shellAPI["readLine"] = lua.RegisterFunction("shell.readLine", this, typeof(Shell).GetMethod("ReadLine"));
-
-        shellAPI["run"] = lua.RegisterFunction("shell.run", this, typeof(Shell).GetMethod("Run"));
-        shellAPI["sleep"] = lua.RegisterFunction("shell.sleep", this, typeof(Shell).GetMethod("Sleep"));
-
-
-        lua.RegisterFunction("print", this, typeof(Shell).GetMethod("Write"));
-        lua.RegisterFunction("printLine", this, typeof(Shell).GetMethod("WriteLine"));
+        // Global functions outside the shell table
+        lua.RegisterFunction("print", this, typeof(Shell).GetMethod(nameof(Write)));
+        lua.RegisterFunction("printLine", this, typeof(Shell).GetMethod(nameof(WriteLine)));
     }
+
 
 
     private bool IsCharacterKey(KeyCode keyCode)
