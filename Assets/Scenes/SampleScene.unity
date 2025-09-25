@@ -635,11 +635,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1289773634}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -495, y: 306}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 11, y: -16}
   m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 1}
 --- !u!114 &671310612
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1014,15 +1014,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65928867cc604e24e8b46e2cc15fff41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inspectorID: 0
+  inspectorID: 4
   inspectorMaxHealth: 100
   state: 0
   screenMesh: {fileID: 2011640795}
   screenSize:
     x: 256
     y: 256
-  shellLines: 11
+  shellLines: 10
   shellInitializationString: Welcome to LUnityVM
+  visibleSavePath: NONE
 --- !u!4 &816070439 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ed1020e167515e54eb72afb64baefef0, type: 3}
@@ -1818,7 +1819,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65928867cc604e24e8b46e2cc15fff41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inspectorID: 1
+  inspectorID: 3
   inspectorMaxHealth: 100
   state: 0
   screenMesh: {fileID: 707384772}
@@ -1827,6 +1828,7 @@ MonoBehaviour:
     y: 256
   shellLines: 11
   shellInitializationString: Welcome to LUnityVM
+  visibleSavePath: NONE
 --- !u!114 &2025642880
 MonoBehaviour:
   m_ObjectHideFlags: 0

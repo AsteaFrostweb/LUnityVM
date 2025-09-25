@@ -13,13 +13,15 @@ public class FileSystem
 
     public FileSystem(string rootpath) 
     {
-        rootPath = rootpath;
-        if (!Directory.Exists(rootpath)) 
+        Debug.Log("FS const: directory exists?");
+        rootPath = Path.GetFullPath(rootpath);
+        if (!Directory.Exists(rootPath))
         {
-            Debug.Log("Creating computer file system at location: " + rootpath);         
-            Directory.CreateDirectory(rootpath + "rom/programs");
+            Debug.Log("Creating computer file system at location: " + rootPath);
+            Directory.CreateDirectory(rootPath + "rom/programs");
             Debug.Log("Copying base rom programs from game install");
-        }        
+        }
+        else { Debug.Log("FS const: directory exists: YES,   rootpath:" + rootPath); }     
     }
 
     public bool CreateDirectory(string path) 
@@ -40,7 +42,10 @@ public class FileSystem
         Debug.Log("PreFormatting path: " + path);
         Utility.FormatPathPreCombine(ref path, () => { }, 0);
         Debug.Log("PreFormatted Path Sucesffuly: " + path);
-        string localPath = Path.Combine(rootPath, path);
+        string localPath = path == "" ? rootPath : Path.Combine(rootPath, path);
+        Debug.Log("LS Local path:" + localPath); 
+        localPath = Path.GetFullPath(localPath);
+        Debug.Log("LS Local path(full):" + localPath);
         if (!Directory.Exists(localPath)) return null;
 
       

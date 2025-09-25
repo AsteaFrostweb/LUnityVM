@@ -29,6 +29,7 @@ public class Computer : Structural
     public int2 screenSize;
     public int shellLines = Shell.DEFAULT_LINE_NUMBER;
     public string shellInitializationString = "Welcome to LUnity OS v1.0.1";
+    public string visibleSavePath = "NONE";
    
     //---NON INSPECTOR---
     public int ID { get; private set; } 
@@ -59,6 +60,7 @@ public class Computer : Structural
     public void InitializeFileSystem() 
     {
         fileSystem = new FileSystem(localPath);
+        visibleSavePath = localPath;
     }
 
     public void InitializeEventSystem() 

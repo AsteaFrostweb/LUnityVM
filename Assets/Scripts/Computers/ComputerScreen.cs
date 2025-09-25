@@ -12,6 +12,7 @@ public class ComputerScreen
     private Camera screenCamera;
     private TextMeshProUGUI screenText;
 
+
     // Hidden text box for calculating wrapped lines
     private TextMeshProUGUI hiddenTextBox;
     public ComputerScreen(MeshRenderer mesh, int2 size)
@@ -61,7 +62,7 @@ public class ComputerScreen
         hiddenTextBox.rectTransform.offsetMin = new Vector2(0, 0); // Left and bottom offsets
         hiddenTextBox.rectTransform.offsetMax = new Vector2(0, 0); // Right and top offsets
         hiddenTextBox.fontSize = 20;
-
+   
 
         screenMesh.material.mainTexture = screenRenderTex;
     }
@@ -115,9 +116,9 @@ public class ComputerScreen
             screenText.text = final;
         }
 
+ 
         //Debug.Log("Remaining Lines: " + remainingLines);
     }
-
 
 
     private int CalculateWrappedLines(string text)

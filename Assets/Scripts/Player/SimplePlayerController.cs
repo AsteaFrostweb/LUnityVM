@@ -59,10 +59,11 @@ public class SimplePlayerController : MonoBehaviour
         if (velocity.sqrMagnitude > 0.001f)
         {
             velocity = Vector3.Lerp(velocity, Vector3.zero, drag * Time.deltaTime);
-        }
+        }else
+            velocity = Vector3.zero;
 
-        // --- Apply Movement ---
-        transform.position += velocity * Time.deltaTime;
+            // --- Apply Movement ---
+            transform.position += velocity * Time.deltaTime;
     }
 
     void HandleRotation()

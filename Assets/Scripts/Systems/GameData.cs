@@ -48,7 +48,7 @@ public static class GameData
     public static string ActiveSavePath() 
     {
         if (dataPath == null) dataPath = Application.persistentDataPath;
-
-        return Path.Combine(dataPath, currentSaveExtension);
+        return dataPath + currentSaveExtension;
+        //return Path.Combine(Application.persistentDataPath, currentSaveExtension);
     } 
 }
