@@ -30,6 +30,10 @@ public class FirstPersonSelectionController : MonoBehaviour
                     selectable.action.Invoke();
                 }              
             }
+            else
+            {
+                GameData.currentSelectable = null;
+            }
         }
         else 
         {

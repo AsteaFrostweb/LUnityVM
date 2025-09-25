@@ -28,6 +28,7 @@ public class Computer : Structural
     public MeshRenderer screenMesh;
     public int2 screenSize;
     public int shellLines = Shell.DEFAULT_LINE_NUMBER;
+    public string shellInitializationString = "Welcome to LUnity OS v1.0.1";
    
     //---NON INSPECTOR---
     public int ID { get; private set; } 
@@ -83,7 +84,7 @@ public class Computer : Structural
         //Would need a new "CreateLuaEnviroment" function that takes a bool as to whether or not to include shell lib
         object[] defaultAPILoaders = { fileSystem, this };
 
-        currentShell = new Shell(defaultAPILoaders, this, shellLines).Start();
+        currentShell = new Shell(shellInitializationString, defaultAPILoaders, this, shellLines).Start();
         shells = new List<Shell> { currentShell };
 
        

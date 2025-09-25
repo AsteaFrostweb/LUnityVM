@@ -33,14 +33,14 @@ public class Shell : IAPILoader
     public int lineNumber { get; private set; } = DEFAULT_LINE_NUMBER;
 
     private Task mainTask;
-   
+    private string shellInitializationString;
 
     private string currentDirectory = "";
     public string currentDirectoryFullPath { get { return Path.Combine(host.localPath, currentDirectory); } }
 
     //represent weather the _ is current added to the end of lines[cursorY]
     private bool cursorActive = false;
-    public Shell()
+    public Shell(string _shellInitializationString)
     {
         enviroment = new Lua();
         host = null;     
@@ -49,8 +49,9 @@ public class Shell : IAPILoader
         {
             lines[i] = "";
         }
+        shellInitializationString = _shellInitializationString;
     }
-    public Shell(object[] apiLoaders, Computer _host) 
+    public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host) 
     {
         enviroment = CreateLuaEnviroment(apiLoaders);
         host = _host;         
@@ -59,8 +60,9 @@ public class Shell : IAPILoader
         {
             lines[i] = "";
         }
+        shellInitializationString = _shellInitializationString;
     }
-    public Shell(object[] apiLoaders, Computer _host, int lineCount)
+    public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host, int lineCount)
     {
         enviroment = CreateLuaEnviroment(apiLoaders);
         host = _host;        
@@ -70,6 +72,7 @@ public class Shell : IAPILoader
         {
             lines[i] = "";
         }
+        shellInitializationString = _shellInitializationString;
     }
 
     public Shell Start() 
@@ -88,7 +91,7 @@ public class Shell : IAPILoader
 
     public void Main() 
     {
-        WriteLine("Welcome to ShipOS v1.0.1");
+        WriteLine(shellInitializationString);
         while (true) 
         {
             Write($"<color=yellow>{currentDirectory}\\:</color>");
