@@ -1,5 +1,6 @@
 
 using NLua;
+using NLua.Exceptions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -123,7 +124,7 @@ public class Shell : IAPILoader
                 }
                 else 
                 {
-                    WriteLine($"No command found: {args[0]}");
+                    WriteLineError($"No command found: {args[0]}");
                     return false;
                 }
         }
@@ -210,7 +211,7 @@ public class Shell : IAPILoader
             //debug log to explain current limitation of shell program I don't intend to extend right now.
             WriteLineError($"Unable to accept quote encapsulated arguments.\n" +
                       $"Arguments are split by space characters in shell. \n" +
-                      $"If you MUST do space seperated files/directorie names you can use the \"shell\" API in the lua terminal.");
+                      $"If you MUST do space seperated files/directory names you can use the \"shell\" API in the lua terminal.");
 
             return;
         }
@@ -264,8 +265,21 @@ public class Shell : IAPILoader
     {
         string filePath = Path.Combine(host.localPath, fileName);
         if (File.Exists(filePath) && Path.GetExtension(filePath) == ".lua")
-        {            
-            enviroment.DoFile(host.localPath + fileName);
+        {
+            try
+            {
+                enviroment.DoFile(host.localPath + fileName);
+            }
+            catch (LuaScriptException ex) 
+            {
+                //remove the root path from message error
+                //Then append it onto out current virtual directory so error message appears local to machine
+                int lastSlashIndex = ex.Message.LastIndexOfAny(new char[] { '/', '\\' });
+                string trimmedMessage = lastSlashIndex > 0 ? ex.Message.Substring(lastSlashIndex + 1) : ex.Message;
+                string finalMessage = currentDirectory != "" ? currentDirectory + "/" + trimmedMessage : trimmedMessage;
+                WriteLineError("LuaScriptException: " + finalMessage);
+            }
+            
         }      
     }
 
@@ -481,7 +495,7 @@ public class Shell : IAPILoader
 
     public void ClearLine(int index)
     {
-        int trueIndex = index - 1; //The Lua side will be counting from 1 - Linecount rather than 0 - (lineCount - 1). 
+        int trueIndex = index - 1;
         lines[trueIndex] = "";  
     }
 

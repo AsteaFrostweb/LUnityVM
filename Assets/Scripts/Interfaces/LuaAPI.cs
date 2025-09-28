@@ -31,9 +31,10 @@ public class LuaAPI
         return this; // allow chaining
     }
 
-    // Optional: overload for delegates/lambdas
+
     public LuaAPI RegisterFunction(string funcName, Delegate del)
     {
+        //EXAMPLE: tableName:"shell", funcName:"clear" maps the delegate method to the "shell.clear()" function in Lua Enviroment that implements this API.
         lua.RegisterFunction($"{tableName}.{funcName}", del.Target, del.Method);
         table[funcName] = lua[$"{tableName}.{funcName}"];
         return this;
