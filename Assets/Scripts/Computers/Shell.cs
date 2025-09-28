@@ -38,42 +38,39 @@ public class Shell : IAPILoader
 
     private string currentDirectory = "";
     public string currentDirectoryFullPath { get { return Path.Combine(host.localPath, currentDirectory); } }
+    private Dictionary<string, Action<string[]>> shellBaseCommands;
 
     //represent weather the _ is current added to the end of lines[cursorY]
     private bool cursorActive = false;
     public Shell(string _shellInitializationString)
     {
         enviroment = new Lua();
-        host = null;     
+        host = null;
+        lineNumber = 10; // default if not set
         lines = new string[lineNumber];
         for (int i = 0; i < lineNumber; i++)
-        {
             lines[i] = "";
-        }
+
         shellInitializationString = _shellInitializationString;
+        InitializeShellBaseCommands();
     }
-    public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host) 
+
+    // Constructor with API loaders and host
+    public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host)
+        : this(_shellInitializationString) // calls the base constructor first
     {
         enviroment = CreateLuaEnviroment(apiLoaders);
-        host = _host;         
-        lines = new string[lineNumber];
-        for (int i = 0; i < lineNumber; i++)
-        {
-            lines[i] = "";
-        }
-        shellInitializationString = _shellInitializationString;
+        host = _host;
     }
+
+    // Constructor with API loaders, host, and line count
     public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host, int lineCount)
+        : this(_shellInitializationString, apiLoaders, _host) // calls previous constructor
     {
-        enviroment = CreateLuaEnviroment(apiLoaders);
-        host = _host;        
         lineNumber = lineCount;
-        lines = new string[lineCount];        
-        for(int i = 0; i < lineCount; i++) 
-        {
+        lines = new string[lineCount];
+        for (int i = 0; i < lineCount; i++)
             lines[i] = "";
-        }
-        shellInitializationString = _shellInitializationString;
     }
 
     public Shell Start() 
@@ -101,33 +98,39 @@ public class Shell : IAPILoader
         }
     }
 
-    private bool ParseCommand(string s) 
+
+    private void InitializeShellBaseCommands() 
     {
-    
+        shellBaseCommands = new Dictionary<string, Action<string[]>>()
+        {
+            {"ls", ListDirectory },
+            {"cd", ChangeDirectory },
+            { "cls", CLS }
+        };
+    }
+    private bool ParseCommand(string s) 
+    {   
+
         string[] args = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);       
         if (args == null) return true;
         if (args.Length <= 0) return true;
-        switch (args[0]) 
+
+        //If the shellBaseCommands dictionary contains the command entered
+        if (shellBaseCommands != null && shellBaseCommands.ContainsKey(args[0]))
         {
-            case "ls":
-                ListDirectory();
-                return true;              
-            case "cd":
-                ChangeDirectory(args);
-                return true;
-
-
-            default:
-                if (FindAndRunFile(args[0]))
-                {
-                    return true;
-                }
-                else 
-                {
-                    WriteLineError($"No command found: {args[0]}");
-                    return false;
-                }
+            Action<string[]> action = shellBaseCommands[args[0]];
+            action?.Invoke(args);
+            return true;
         }
+        else if(FindAndRunFile(args[0]))
+        {
+            return true;
+        }
+        else
+        {
+            WriteLineError($"No command found: {args[0]}");
+            return false;
+        }       
     }
 
     private bool FindAndRunFile(string filePath) 
@@ -169,7 +172,7 @@ public class Shell : IAPILoader
         if (trimmedPath != null) currentDirectory = trimmedPath;
     }
 
-    private void ListDirectory()
+    private void ListDirectory(string[] args)
     {
         Debug.Log("Attemptiong to get files for directory:" + currentDirectory);
         string[] files = host.fileSystem.GetFiles(currentDirectory);
@@ -270,7 +273,7 @@ public class Shell : IAPILoader
             {
                 enviroment.DoFile(host.localPath + fileName);
             }
-            catch (LuaScriptException ex) 
+            catch (Exception ex) 
             {
                 //remove the root path from message error
                 //Then append it onto out current virtual directory so error message appears local to machine
@@ -297,6 +300,7 @@ public class Shell : IAPILoader
     public void WriteLine(string s) 
     {
         Debug.Log("writing :" + s + " to line: " + cursorY.ToString());
+      
         if (cursorActive)
         {
            
@@ -334,7 +338,6 @@ public class Shell : IAPILoader
         float repeatRateDecrease = 0.05f;
         float repeatRateHold = repeatRateHoldMax;  
         float repeatRateDown = 0.05f; // Time between repeated keypresses (in seconds)        
-  
 
 
 
@@ -343,6 +346,7 @@ public class Shell : IAPILoader
 
         while (true)
         {
+            
             bool keyDown = false;
             char c = Read(out keyDown); //Get a chacter key_down or key_hold from the event queue
 
@@ -486,11 +490,13 @@ public class Shell : IAPILoader
         }
     }
 
-
+    //used for binding to action<string[]> for shell commands dictionary
+    private void CLS(string[] args) => Clear();
     public void Clear() 
     {
         int lineCount = lines.Length;
-        lines = new string[lineCount];     
+        lines = new string[lineCount];
+        cursorY = 0;
     }
 
     public void ClearLine(int index)
@@ -500,33 +506,10 @@ public class Shell : IAPILoader
     }
 
 
-
-    public void RunLuaScript(string script)
-    {
-        Task.Run(() => ExecuteScript(script));
-    }
-
-    private void ExecuteScript(string script)
-    {
-        try
-        {
-            enviroment.DoString(script);
-            
-        }
-        catch (Exception ex)
-        {
-            Debug.LogException(ex);
-        }
-    }
-
-
-
     public void Sleep(float seconds)
     {
         System.Threading.Thread.Sleep((int)(seconds * 1000));
     }
-
-
 
     public void AddAPI(Lua lua)
     {
@@ -535,12 +518,12 @@ public class Shell : IAPILoader
             .RegisterFunction("clearLine", this, nameof(ClearLine))
             .RegisterFunction("read", this, nameof(ReadChar))
             .RegisterFunction("readLine", this, nameof(ReadLine))
-            .RegisterFunction("run", this, nameof(Run))
-            .RegisterFunction("sleep", this, nameof(Sleep));
+            .RegisterFunction("run", this, nameof(Run));      
 
         // Global functions outside the shell table
         lua.RegisterFunction("print", this, typeof(Shell).GetMethod(nameof(Write)));
         lua.RegisterFunction("printLine", this, typeof(Shell).GetMethod(nameof(WriteLine)));
+        lua.RegisterFunction("sleep", this, typeof(Shell).GetMethod(nameof(Sleep)));
     }
 
 
