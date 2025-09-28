@@ -128,7 +128,7 @@ public class ComputerScreen
 
         // Set the new text and let it calculate the wrapping
         hiddenTextBox.text = text;
-
+        hiddenTextBox.ForceMeshUpdate();
         // Get the number of wrapped lines
         int wrappedLines = hiddenTextBox.textInfo.lineCount;
       // Debug.Log("Lines: " + wrappedLines.ToString() + " - " + text);
