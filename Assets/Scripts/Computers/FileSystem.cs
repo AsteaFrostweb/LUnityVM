@@ -1,18 +1,24 @@
+using NLua;
+using NLua.Exceptions;
+using NUnit.Framework.Constraints;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using NLua;
+using UnityEngine;
+using static UnityEditor.Handles;
 
-public class FileSystem 
+public class FileSystem : IAPILoader
 {
+    private Computer host;
     private string rootPath;
     private FileStream currentStream;
 
-    public FileSystem(string rootpath) 
+    public FileSystem(string rootpath, Computer _host) 
     {
+        host = _host;
         Debug.Log("FS const: directory exists?");
         rootPath = Path.GetFullPath(rootpath);
         if (!Directory.Exists(rootPath))
@@ -102,6 +108,7 @@ public class FileSystem
                     catch (System.Exception e)
                     {
                         Debug.Log("Exception while trying to open file:" + e.ToString());
+                        host.currentShell.WriteLineError("Exception while trying to open file:" + e.ToString());
                         return false;
                     }
                     break;
@@ -113,6 +120,7 @@ public class FileSystem
                     catch (System.Exception e)
                     {
                         Debug.Log("Exception while trying to open file:" + e.ToString());
+                        host.currentShell.WriteLineError("Exception while trying to open file:" + e.ToString());
                         return false;
                     }
                     break;
@@ -124,6 +132,7 @@ public class FileSystem
                     catch (System.Exception e)
                     {
                         Debug.Log("Exception while trying to open file:" + e.ToString());
+                        host.currentShell.WriteLineError("Exception while trying to open file:" + e.ToString());
                         return false;
                     }
                     break;
@@ -144,15 +153,25 @@ public class FileSystem
         return false;
     }
 
+    private string ReadLine() 
+    {
+        string line = "Nothing Readable From File";
+
+        if (currentStream != null && currentStream.CanRead)
+        {
+            line = new StreamReader(currentStream).ReadLine();
+        }
+        return line;
+    }
+
     public void AddAPI(Lua lua)
     {
-        //register the file system api for file related querys
-        LuaTable fsAPI = Utility.CreateTable(lua, "fs");
-        fsAPI["getDirectories"] = lua.RegisterFunction("fs.getDirectories", this, typeof(FileSystem).GetMethod("GetDirectories"));
-        fsAPI["getFiles"] = lua.RegisterFunction("fs.getFiles", this, typeof(FileSystem).GetMethod("GetFiles"));
-
-        //register the io api for Inpput output to files
+        new LuaAPI(lua, "fs")
+            .RegisterFunction("getDirectories", this, nameof(GetDirectories))
+            .RegisterFunction("getFiles", this, nameof(GetFiles))
+            .RegisterFunction("open", this, nameof(OpenFile))
+            .RegisterFunction("close", this, nameof(CloseStream))
+            .RegisterFunction("readLine", this, nameof(ReadLine));
         
     }
-   
 }
