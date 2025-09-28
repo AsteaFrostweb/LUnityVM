@@ -872,9 +872,10 @@ MonoBehaviour:
   screenSize:
     x: 256
     y: 256
-  shellLines: 10
+  shellLines: 9
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
+  shellLinesArr: []
 --- !u!4 &816070439 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ed1020e167515e54eb72afb64baefef0, type: 3}
@@ -1829,6 +1830,7 @@ MonoBehaviour:
   shellLines: 11
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
+  shellLinesArr: []
 --- !u!114 &2025642880
 MonoBehaviour:
   m_ObjectHideFlags: 0
