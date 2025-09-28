@@ -30,7 +30,8 @@ public class Computer : Structural
     public int shellLines = Shell.DEFAULT_LINE_NUMBER;
     public string shellInitializationString = "Welcome to LUnity OS v1.0.1";
     public string visibleSavePath = "NONE";
-   
+    public string[] shellLinesArr;
+
     //---NON INSPECTOR---
     public int ID { get; private set; } 
     private List<Shell> shells;
@@ -40,7 +41,8 @@ public class Computer : Structural
     private ComputerScreen screen;  
     public ComputerEventSystem eventSystem { get; private set; }
 
-   
+    
+
     public string localPath { get { return GameData.ActiveSavePath() + ID.ToString() + "/"; } }
 
     public string PATH { get; private set; } = "rom/programs/:rom/programs/ship/";
@@ -59,7 +61,7 @@ public class Computer : Structural
     }
     public void InitializeFileSystem() 
     {
-        fileSystem = new FileSystem(localPath);
+        fileSystem = new FileSystem(localPath, this);
         visibleSavePath = localPath;
     }
 
@@ -95,6 +97,7 @@ public class Computer : Structural
 
     private void Update()
     {
+        shellLinesArr = currentShell.lines;
         eventSystem.Update(Time.deltaTime);
    
         //Debug.Log("Shell: " + currentShell.ToString() + "  screen: " + screen.ToString());
