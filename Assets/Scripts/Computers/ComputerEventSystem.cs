@@ -1,3 +1,4 @@
+using NLua;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -82,7 +83,9 @@ public class ComputerEventSystem
         if (_event != null) events.Remove(_event);
         callback?.Invoke(_event);
     }
- 
+
+
+
     public ComputerEvent PullEvent(params string[] types)
     {
         List<string> typesList = types.ToList<string>();
@@ -106,8 +109,9 @@ public class ComputerEventSystem
         //Should allow us to define predicate for the event so we can deteine what kind of event we want to pull before its removed from event Queue
         //This is uselfull for pulling "luanet_send"/receive events as they have a port included in the event
         //If i pull the evnt and then check port then the event will already have been removed. This noooo good, so instead this way we can
-       
-        ComputerEvent _event = events.Find(c => c.eventType == type && match.Invoke(c));
+        if (events == null) return null;
+
+        ComputerEvent _event = events.Find(c => c?.eventType == type && match(c));
 
         
         if (_event != null) events.Remove(_event);
