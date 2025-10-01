@@ -12,7 +12,7 @@ using Unity.Mathematics;
 using TMPro;
 using JetBrains.Annotations;
 using UnityEngine.InputSystem;
-using System.Runtime.InteropServices.WindowsRuntime;
+//using System.Runtime.InteropServices.WindowsRuntime;
 
 
 
@@ -30,7 +30,10 @@ public class Computer : Structural
     public int shellLines = Shell.DEFAULT_LINE_NUMBER;
     public string shellInitializationString = "Welcome to LUnity OS v1.0.1";
     public string visibleSavePath = "NONE";
+    public float restartTime = 2.0f;
+    private float restartInputElapsedTime = 0f;
 
+    [Header("Read Only")]
     public string[] shellLinesArr;
 
     //---NON INSPECTOR---
@@ -47,7 +50,7 @@ public class Computer : Structural
     private ComputerScreen screen;  
     public ComputerEventSystem eventSystem { get; private set; }
 
-    
+    private bool restartLocked = false;
 
     public string localPath { get { return GameData.ActiveSavePath() + ID.ToString() + "/"; } }
 
@@ -114,6 +117,22 @@ public class Computer : Structural
    
         //Debug.Log("Shell: " + currentShell.ToString() + "  screen: " + screen.ToString());
         screen.UpdateScreen(currentShell.lines, shellLines);
+
+        //If the player has the computer selected and is pressing: Ctrl + R
+        if
+        (
+            IsCurrentFocus() && //If the player is focusing this computer 
+            Input.GetKey(KeyCode.R) && //Is holding R
+           (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) //Is holding ctrl
+        )
+        {
+            restartInputElapsedTime += Time.deltaTime;
+            if (restartInputElapsedTime >= restartTime)
+            {
+                Restart();
+            }
+        }
+        else restartInputElapsedTime = 0f;
     }
 
     //----API FUNCTIONS ----
@@ -145,6 +164,11 @@ public class Computer : Structural
         return table;
     }
 
+    private void Restart() 
+    {
+        currentShell.WriteLine("Restarting Computer...");
+    }
+
 
     public bool RegisterComputer() 
     {
@@ -156,6 +180,8 @@ public class Computer : Structural
         computers.TryGetValue(id, out ans);
         return ans;
     }
+
+    public bool IsCurrentFocus() => GameData.currentFocus.Equals(InputFocus.COMPUTER, ID.ToString());
 
     public bool HasNetworkDevice() 
     {
