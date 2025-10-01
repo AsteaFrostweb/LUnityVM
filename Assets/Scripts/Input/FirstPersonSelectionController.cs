@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Game.Utility;
 
 public class FirstPersonSelectionController : MonoBehaviour
 {

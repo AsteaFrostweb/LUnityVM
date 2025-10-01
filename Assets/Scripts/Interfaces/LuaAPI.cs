@@ -1,6 +1,7 @@
 using NLua;
 using System;
 using System.Reflection;
+using Game.Utility;
 
 public class LuaAPI
 {
