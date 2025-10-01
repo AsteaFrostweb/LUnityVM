@@ -30,9 +30,13 @@ public class Computer : Structural
     public int shellLines = Shell.DEFAULT_LINE_NUMBER;
     public string shellInitializationString = "Welcome to LUnity OS v1.0.1";
     public string visibleSavePath = "NONE";
+
     public string[] shellLinesArr;
 
     //---NON INSPECTOR---
+
+    public static Dictionary<int, Computer> computers = new Dictionary<int, Computer>();
+
     public int ID { get; private set; } 
     private List<Shell> shells;
     public Shell currentShell { get; private set; }
@@ -73,8 +77,9 @@ public class Computer : Structural
     //---MONOBEHAVIOR FUNCTIONS---
     private void Start()
     {
-        
+        //Assign and register computer to main computer dictionary
         ID = inspectorID;
+        RegisterComputer();
 
         InitializeEventSystem();       
         InitializeStructural();
@@ -131,6 +136,23 @@ public class Computer : Structural
         table["y"] = position.y;
         table["z"] = position.z;
         return table;
+    }
+
+
+    public bool RegisterComputer() 
+    {
+        return computers.TryAdd(ID, this);
+    }
+    public static Computer FindByID(int id) 
+    {
+        Computer ans = null;
+        computers.TryGetValue(id, out ans);
+        return ans;
+    }
+
+    public bool HasNetworkDevice() 
+    {
+        return true;
     }
 
 }
