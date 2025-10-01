@@ -88,8 +88,7 @@ public class Shell : IAPILoader
     } 
     public void Stop() 
     {
-        cts.Cancel();
-        mainTask.Dispose();
+        cts.Cancel();      
     }
 
 
