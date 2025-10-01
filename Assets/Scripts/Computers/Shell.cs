@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
@@ -33,7 +34,11 @@ public class Shell : IAPILoader
     private bool cursorBlink = true;
     public int lineNumber { get; private set; } = DEFAULT_LINE_NUMBER;
 
+    //TASK SHIZZ
     private Task mainTask;
+    CancellationTokenSource cts;
+    CancellationToken cancelationToken => cts.Token;
+
     private string shellInitializationString;
 
     private string currentDirectory = "";
@@ -74,16 +79,17 @@ public class Shell : IAPILoader
     }
 
     public Shell Start() 
-    {        
+    {
         //start the main task
-        mainTask = Task.Run(() => Main());
-     
+        cts = new CancellationTokenSource();
+        mainTask = Task.Run(() => Main(), cancelationToken);
+        
         return this;
     } 
     public void Stop() 
     {
-   
-     
+        cts.Cancel();
+        mainTask.Dispose();
     }
 
 
@@ -269,18 +275,23 @@ public class Shell : IAPILoader
         string filePath = Path.Combine(host.localPath, fileName);
         if (File.Exists(filePath) && Path.GetExtension(filePath) == ".lua")
         {
+            //enviroment.DoFile(host.localPath + fileName);
             try
             {
                 enviroment.DoFile(host.localPath + fileName);
             }
-            catch (Exception ex) 
+            catch (LuaException ex) 
             {
                 //remove the root path from message error
                 //Then append it onto out current virtual directory so error message appears local to machine
+                
                 int lastSlashIndex = ex.Message.LastIndexOfAny(new char[] { '/', '\\' });
                 string trimmedMessage = lastSlashIndex > 0 ? ex.Message.Substring(lastSlashIndex + 1) : ex.Message;
                 string finalMessage = currentDirectory != "" ? currentDirectory + "/" + trimmedMessage : trimmedMessage;
                 WriteLineError("LuaScriptException: " + finalMessage);
+                WriteLineError(ex.InnerException.Message.ToString());
+                //
+                WriteLineError(ex.InnerException.StackTrace.ToString());
             }
             
         }      
