@@ -42,6 +42,8 @@ public class Computer : Structural
     public Shell currentShell { get; private set; }
     public  FileSystem fileSystem { get; private set; }
 
+    public LuaNet network { get; private set; }
+
     private ComputerScreen screen;  
     public ComputerEventSystem eventSystem { get; private set; }
 
@@ -58,20 +60,24 @@ public class Computer : Structural
     }
 
     //---Initalizing methods---
-    public void InitializeStructural() 
+    private void InitializeStructural() 
     {              
         maxHealth = inspectorMaxHealth;
         health = maxHealth;
     }
-    public void InitializeFileSystem() 
+    private void InitializeFileSystem() 
     {
         fileSystem = new FileSystem(localPath, this);
         visibleSavePath = localPath;
     }
 
-    public void InitializeEventSystem() 
+    private void InitializeEventSystem() 
     {
         eventSystem = new ComputerEventSystem(this);
+    }
+    private void InitializeNetworking() 
+    {
+        network = new LuaNet(this);
     }
 
     //---MONOBEHAVIOR FUNCTIONS---
@@ -84,6 +90,7 @@ public class Computer : Structural
         InitializeEventSystem();       
         InitializeStructural();
         InitializeFileSystem();
+        InitializeNetworking();
 
         //Creates the screen of the computer (render texture, Canvas and camera)
         Debug.Log(screenMesh.ToString() + screenSize.ToString());
@@ -91,7 +98,7 @@ public class Computer : Structural
 
         //Define an object array with the api loader interface to call "AddAPI" on them. Shell then creates lua enviroment
         //Would need a new "CreateLuaEnviroment" function that takes a bool as to whether or not to include shell lib
-        object[] defaultAPILoaders = { fileSystem, this };
+        object[] defaultAPILoaders = { fileSystem, this, network};
 
         currentShell = new Shell(shellInitializationString, defaultAPILoaders, this, shellLines).Start();
         shells = new List<Shell> { currentShell };
@@ -155,4 +162,12 @@ public class Computer : Structural
         return true;
     }
 
+
+    private void OnDestroy()
+    {
+        foreach (Shell s in shells) 
+        {
+            s.Stop();
+        }
+    }
 }
