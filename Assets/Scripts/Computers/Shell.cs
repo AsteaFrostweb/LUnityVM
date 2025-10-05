@@ -45,43 +45,46 @@ public class Shell : IAPILoader
     private string shellInitializationString;
 
     private string currentDirectory = "";
+    public string CurrentDirectoryExposed() => currentDirectory;
     public string currentDirectoryFullPath { get { return Path.Combine(host.localPath, currentDirectory); } }
     private Dictionary<string, Action<string[]>> shellBaseCommands;
 
+    public object[] defaultAPILoaders;
+
     //represent weather the _ is current added to the end of lines[cursorY]
     private bool cursorActive = false;
-    public Shell(string _shellInitializationString)
+    public Shell(string _shellInitializationString, Computer _host)
     {
+        
+        host = _host;
         randomID = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 10f) * 100f);
-        enviroment = new Lua();
-        host = null;
+
+        InitializeFileSystem(_host);
+        InitializeDefualtAPILoaders();
+        enviroment = CreateLuaEnviroment(defaultAPILoaders);
+
         lineNumber = 10; // default if not set
         lines = new string[lineNumber];
         for (int i = 0; i < lineNumber; i++)
             lines[i] = "";
 
         shellInitializationString = _shellInitializationString;
-        InitializeShellBaseCommands();
+        InitializeShellBaseCommands();      
     }
-
-    // Constructor with API loaders and host
-    public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host)
-        : this(_shellInitializationString) // calls the base constructor first
-    {
-        enviroment = CreateLuaEnviroment(apiLoaders);
-        host = _host;
-    }
-
     // Constructor with API loaders, host, and line count
     public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host, int lineCount)
-        : this(_shellInitializationString, apiLoaders, _host) // calls previous constructor
+        : this(_shellInitializationString, _host) // calls previous constructor
     {
+        host = _host;
         lineNumber = lineCount;
         lines = new string[lineCount];
         for (int i = 0; i < lineCount; i++)
             lines[i] = "";
     }
-
+    private void InitializeDefualtAPILoaders()
+    {
+        defaultAPILoaders = new object[] { fileSystem, this, host.network };
+    }
     public Shell Start()
     {
         cts = new CancellationTokenSource();
@@ -95,6 +98,8 @@ public class Shell : IAPILoader
     public void Stop()
     {
         Debug.Log($"[{randomID}]Stopping shell!");
+
+        fileSystem.CloseStream();
 
         if (cts != null && !cts.IsCancellationRequested)
             cts.Cancel();
@@ -126,10 +131,11 @@ public class Shell : IAPILoader
         }
     }
 
-    private void InitializeFileSystem()
+    private void InitializeFileSystem(Computer _host)
     {
-        fileSystem = new FileSystem(host.localPath, this);
-        host.visibleSavePath = host.localPath;
+     
+        fileSystem = new FileSystem(_host.localPath, this);
+        _host.visibleSavePath = _host.localPath;
     }
     private void InitializeShellBaseCommands() 
     {
@@ -207,10 +213,12 @@ public class Shell : IAPILoader
     private void ListDirectory(string[] args)
     {
         Debug.Log("Attemptiong to get files for directory:" + currentDirectory);
-        string[] files = host.fileSystem.GetFiles(currentDirectory);
+        Debug.Log(host == null);
+        Debug.Log(fileSystem == null);
+        string[] files = fileSystem.GetFiles(currentDirectory);
         Debug.Log("Got files for directory:" + currentDirectory);
         Debug.Log("Attemptiong to get Directorys for directory:" + currentDirectory);
-        string[] dirs = host.fileSystem.GetDirectories(currentDirectory);
+        string[] dirs = fileSystem.GetDirectories(currentDirectory);
         Debug.Log("Got Directorys for directory:" + currentDirectory);
         // Combine directories and files into a single list
         var combinedList = dirs.Concat(files).ToArray();
@@ -315,9 +323,10 @@ public class Shell : IAPILoader
                 string trimmedMessage = lastSlashIndex > 0 ? ex.Message.Substring(lastSlashIndex + 1) : ex.Message;
                 string finalMessage = currentDirectory != "" ? currentDirectory + "/" + trimmedMessage : trimmedMessage;
                 WriteLineError("LuaScriptException: " + finalMessage);
-                WriteLineError(ex.InnerException.Message.ToString());
+                if(ex.InnerException != null)
+                    WriteLineError(ex.InnerException.Message.ToString());
                 //
-                WriteLineError(ex.InnerException.StackTrace.ToString());
+                //WriteLineError(ex.InnerException.StackTrace.ToString());
             }
             
         }      
@@ -554,6 +563,7 @@ public class Shell : IAPILoader
     public void AddAPI(Lua lua)
     {
         new LuaAPI(lua, "shell")
+            .RegisterFunction("currentDirectory", this, nameof(CurrentDirectoryExposed))
             .RegisterFunction("clear", this, nameof(Clear))
             .RegisterFunction("clearLine", this, nameof(ClearLine))
             .RegisterFunction("read", this, nameof(ReadChar))
