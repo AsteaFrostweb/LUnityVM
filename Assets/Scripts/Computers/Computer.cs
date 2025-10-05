@@ -43,8 +43,6 @@ public class Computer : Structural
     public int ID { get; private set; } 
     private List<Shell> shells;
     public Shell currentShell { get; private set; }
-    public  FileSystem fileSystem { get; private set; }
-
     public LuaNet network { get; private set; }
 
     private ComputerScreen screen;  
@@ -86,10 +84,7 @@ public class Computer : Structural
     {
         network = new LuaNet(this);
     }
-    private void InitializeDefualtAPILoaders()
-    {
-        defaultAPILoaders = new object[]{ fileSystem, this, network };
-    }
+
     private void InitializeShell() 
     {
         currentShell = new Shell(shellInitializationString, defaultAPILoaders, this, shellLines).Start();
@@ -114,7 +109,6 @@ public class Computer : Structural
 
         //Define an object array with the api loader interface to call "AddAPI" on them. Shell then creates lua enviroment
         //Would need a new "CreateLuaEnviroment" function that takes a bool as to whether or not to include shell lib
-        InitializeDefualtAPILoaders();
 
 
         InitializeShell(); //Finally intialize the shell         
@@ -198,22 +192,18 @@ public class Computer : Structural
         
         
         yield return new WaitForSeconds(0.05f);
-        //close any active filestream
-        fileSystem.CloseStream();
 
-        //Purge events
-        eventSystem.Purge();    
+
+        Stop();
 
 
         InitializeStructural(); //structural
   
-        //Stop current shell
-        currentShell.Stop();
-        //currentShell.AwaitStop(); //blocks until shell has stopped
+
         
 
         //Start new shell
-        InitializeDefualtAPILoaders(); // Default API
+
         InitializeShell(); //Shell
 
         //Make sure we dont immediatley re-restart once we unlock the restart
@@ -242,12 +232,17 @@ public class Computer : Structural
         return true;
     }
 
-
-    private void OnDestroy()
+    private void Stop() 
     {
-        foreach (Shell s in shells) 
+        foreach (Shell s in shells)
         {
             s.Stop();
         }
+        eventSystem.Purge();
+    }
+
+    private void OnDestroy()
+    {
+        Stop();
     }
 }
