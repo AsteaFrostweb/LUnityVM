@@ -44,6 +44,10 @@ public class ComputerEventSystem
         this.host = host;   
     }
 
+    public void Purge() 
+    {
+        events.Clear();
+    }
     public void Update(float deltaTime) 
     {
         GetInputEvents();
@@ -122,6 +126,7 @@ public class ComputerEventSystem
     public void GetInputEvents()
     {
         if (!(GameData.currentFocus.inputFocus == InputFocus.COMPUTER && GameData.currentFocus.identifier == host.ID.ToString())) return;
+        if (events == null) return;
 
         bool shiftPressed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);
         bool controlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl);
@@ -130,15 +135,15 @@ public class ComputerEventSystem
             if (keyCode == KeyCode.LeftShift) continue;
             if (Input.GetKey(keyCode))
             {
-                AddEvent(new ComputerEvent("key_hold", Utility.KeyCodeToChar(keyCode, shiftPressed), shiftPressed, controlPressed, 1f));
+                AddEvent(new ComputerEvent("key_hold", Utility.KeyCodeToChar(keyCode, shiftPressed), shiftPressed, controlPressed, 0.05f));
             }
             if (Input.GetKeyDown(keyCode))
             {
-                AddEvent(new ComputerEvent("key_down", Utility.KeyCodeToChar(keyCode, shiftPressed), shiftPressed, controlPressed, 1f));
+                AddEvent(new ComputerEvent("key_down", Utility.KeyCodeToChar(keyCode, shiftPressed), shiftPressed, controlPressed, 0.05f));
             }
             if (Input.GetKeyUp(keyCode))
             {
-                AddEvent(new ComputerEvent("key_up", Utility.KeyCodeToChar(keyCode, shiftPressed), shiftPressed, controlPressed, 1f));
+                AddEvent(new ComputerEvent("key_up", Utility.KeyCodeToChar(keyCode, shiftPressed), shiftPressed, controlPressed, 0.05f));
             }
         }
     }

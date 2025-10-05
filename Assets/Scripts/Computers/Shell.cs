@@ -23,7 +23,7 @@ public class Shell : IAPILoader
     
     public const int DEFAULT_FONT_SIZE = 20;
 
-
+    private int randomID = 0;
     
 
     public Lua enviroment { get; private set; }
@@ -35,7 +35,8 @@ public class Shell : IAPILoader
     public int lineNumber { get; private set; } = DEFAULT_LINE_NUMBER;
 
     //TASK SHIZZ
-    private Task mainTask;
+    private Thread mainThread;
+    public bool isRunning => mainThread != null;
     CancellationTokenSource cts;
     CancellationToken cancelationToken => cts.Token;
 
@@ -49,6 +50,7 @@ public class Shell : IAPILoader
     private bool cursorActive = false;
     public Shell(string _shellInitializationString)
     {
+        randomID = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 10f) * 100f);
         enviroment = new Lua();
         host = null;
         lineNumber = 10; // default if not set
@@ -78,24 +80,43 @@ public class Shell : IAPILoader
             lines[i] = "";
     }
 
-    public Shell Start() 
+    public Shell Start()
     {
-        //start the main task
         cts = new CancellationTokenSource();
-        mainTask = Task.Run(() => Main(), cancelationToken);
-        
+
+        mainThread = new Thread(Main);
+        mainThread.IsBackground = true;
+        mainThread.Start();
+
         return this;
-    } 
-    public void Stop() 
-    {
-        cts.Cancel();      
     }
+    public void Stop()
+    {
+        Debug.Log($"[{randomID}]Stopping shell!");
+
+        if (cts != null && !cts.IsCancellationRequested)
+            cts.Cancel();
+
+        if (mainThread != null && mainThread.IsAlive)
+        {
+            // Wait up to 500ms for cooperative exit
+            if (!mainThread.Join(500))
+            {
+                Debug.LogWarning($"[{randomID}] Shell thread didn’t stop, aborting...");
+                try { mainThread.Abort(); } catch { }
+            }
+        }
+
+        mainThread = null;
+    }
+
 
 
     public void Main() 
     {
+        Sleep(0.5f);
         WriteLine(shellInitializationString);
-        while (true) 
+        while (!cts.IsCancellationRequested) 
         {
             Write($"<color=yellow>{currentDirectory}\\:</color>");
             string cmd = ReadLine();
@@ -148,12 +169,12 @@ public class Shell : IAPILoader
             Run(Path.Combine(currentDirectory, filePath));
             return true;
         }
-        Debug.Log("Splitting host path:" + host.PATH);
+        //Debug.Log("Splitting host path:" + host.PATH);
         string[] paths = host.PATH.Split(":");
         foreach (string s in paths) 
         {            
             string path = Path.Combine(s, filePath);
-            Debug.Log("Checking if file exists: " + Path.Combine(host.localPath,path));
+            //Debug.Log("Checking if file exists: " + Path.Combine(host.localPath,path));
             if (Path.GetExtension(filePath) == ".lua" && File.Exists(Path.Combine(host.localPath, path)))
             {
                 Debug.Log("Runnig file at path: " + path);
@@ -309,8 +330,8 @@ public class Shell : IAPILoader
     }
     public void WriteLine(string s) 
     {
-        Debug.Log("writing :" + s + " to line: " + cursorY.ToString());
-      
+        Debug.Log($"[{randomID}][isMainShell:{this == host.currentShell}]writing :" + s + " to line: " + cursorY.ToString());
+        
         if (cursorActive)
         {
            
@@ -354,7 +375,7 @@ public class Shell : IAPILoader
         // Dictionary to track the state and last press time of each key
         Dictionary<char, DateTime> keyStates = new Dictionary<char, DateTime>();
 
-        while (true)
+        while (!cts.IsCancellationRequested)
         {
             
             bool keyDown = false;
@@ -367,7 +388,8 @@ public class Shell : IAPILoader
             if (keyDown) repeatRateHold = repeatRateHoldMax;
 
             // Returning if the user pressed enter and it is a keydown event. continuing if the Enter was a subsiquent keyhold event
-            if (c == '\r')
+            // Also continuing if the key returned is '\0' as this represents a null character. soemtimes returned if cts is canceled or if shit goes south [Change for more rhobust solution plz]
+            if (c == '\r' || c == '\0')
             {
                 if (keyDown)
                 {
@@ -464,7 +486,7 @@ public class Shell : IAPILoader
 
     public char Read(out bool key_down)
     {
-        while (true)
+        while (!cts.IsCancellationRequested)
         {
             if (GameData.currentFocus.inputFocus == InputFocus.COMPUTER && GameData.currentFocus.identifier == host.ID.ToString())
             {
@@ -480,6 +502,8 @@ public class Shell : IAPILoader
             }
             Sleep(0.01f);
         }
+        key_down = false;
+        return '\0';
     }
     public char ReadChar() 
     {  

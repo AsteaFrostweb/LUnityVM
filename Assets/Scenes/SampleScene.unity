@@ -875,6 +875,7 @@ MonoBehaviour:
   shellLines: 9
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
+  restartTime: 1
   shellLinesArr: []
 --- !u!4 &816070439 stripped
 Transform:
@@ -1830,6 +1831,7 @@ MonoBehaviour:
   shellLines: 11
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
+  restartTime: 1
   shellLinesArr: []
 --- !u!114 &2025642880
 MonoBehaviour:

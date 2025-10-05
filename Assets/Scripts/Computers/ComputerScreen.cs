@@ -77,6 +77,7 @@ public class ComputerScreen
 
     public void UpdateScreen(string[] lines, int MAX_LINES)
     {
+        //Debug.Log("Updating scrren for computer ID:" + );
         if (lines == null || lines.Length == 0 || lines[0] == "") return;
 
         int remainingLines = MAX_LINES;

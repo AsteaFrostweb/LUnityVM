@@ -51,10 +51,15 @@ public class Computer : Structural
     public ComputerEventSystem eventSystem { get; private set; }
 
     private bool restartLocked = false;
+    private bool inputLocked = false;
 
     public string localPath { get { return GameData.ActiveSavePath() + ID.ToString() + "/"; } }
 
     public string PATH { get; private set; } = "rom/programs/:rom/programs/ship/";
+
+    public object[] defaultAPILoaders;
+
+
 
     //Function to set this pc as the current input focus
     public void SetFocus()
@@ -67,6 +72,10 @@ public class Computer : Structural
     {              
         maxHealth = inspectorMaxHealth;
         health = maxHealth;
+    }
+    private void InitializeScreen()
+    {
+        screen = new ComputerScreen(screenMesh, screenSize);
     }
     private void InitializeFileSystem() 
     {
@@ -82,6 +91,16 @@ public class Computer : Structural
     {
         network = new LuaNet(this);
     }
+    private void InitializeDefualtAPILoaders()
+    {
+        defaultAPILoaders = new object[]{ fileSystem, this, network };
+    }
+    private void InitializeShell() 
+    {
+        currentShell = new Shell(shellInitializationString, defaultAPILoaders, this, shellLines).Start();
+        shells = new List<Shell> { currentShell };
+
+    }
 
     //---MONOBEHAVIOR FUNCTIONS---
     private void Start()
@@ -96,31 +115,28 @@ public class Computer : Structural
         InitializeNetworking();
 
         //Creates the screen of the computer (render texture, Canvas and camera)
-        Debug.Log(screenMesh.ToString() + screenSize.ToString());
-        screen = new ComputerScreen(screenMesh, screenSize);
+        InitializeScreen();
 
         //Define an object array with the api loader interface to call "AddAPI" on them. Shell then creates lua enviroment
         //Would need a new "CreateLuaEnviroment" function that takes a bool as to whether or not to include shell lib
-        object[] defaultAPILoaders = { fileSystem, this, network};
+        InitializeDefualtAPILoaders();
 
-        currentShell = new Shell(shellInitializationString, defaultAPILoaders, this, shellLines).Start();
-        shells = new List<Shell> { currentShell };
 
-       
-         
+        InitializeShell(); //Finally intialize the shell         
     }
 
     private void Update()
     {
-        shellLinesArr = currentShell.lines;
-        eventSystem.Update(Time.deltaTime);
-   
-        //Debug.Log("Shell: " + currentShell.ToString() + "  screen: " + screen.ToString());
-        screen.UpdateScreen(currentShell.lines, shellLines);
+        if (currentShell != null)
+        {
+            screen.UpdateScreen(currentShell.lines, shellLines); //update screen
+            shellLinesArr = currentShell.lines;   //Update inspector visible shellLines array
+        }
 
-        //If the player has the computer selected and is pressing: Ctrl + R
+        // --- If the player has the computer selected and is pressing: Ctrl + R ---
         if
         (
+            !restartLocked && //Computer isnt locked from restarting
             IsCurrentFocus() && //If the player is focusing this computer 
             Input.GetKey(KeyCode.R) && //Is holding R
            (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) //Is holding ctrl
@@ -131,8 +147,16 @@ public class Computer : Structural
             {
                 Restart();
             }
+            return;
         }
         else restartInputElapsedTime = 0f;
+
+
+        // Update after checking for ctrl+r press.
+        // If ctrl+r is pressed then we return and do not update the event system.
+        // This avoides inputting "rrrrrrrr" to shell whilst trying to restart. also blocks & hangs other events. can find better solution if it becomes a problem 
+        if(!inputLocked)
+            eventSystem.Update(Time.deltaTime);
     }
 
     //----API FUNCTIONS ----
@@ -166,9 +190,44 @@ public class Computer : Structural
 
     private void Restart() 
     {
+        currentShell.Clear();
         currentShell.WriteLine("Restarting Computer...");
-    }
 
+        restartLocked = true;
+        inputLocked = true;
+        StartCoroutine(RestartCoroutine());
+        
+    }
+    private IEnumerator RestartCoroutine() 
+    {
+        
+        
+        yield return new WaitForSeconds(0.05f);
+        //close any active filestream
+        fileSystem.CloseStream();
+
+        //Purge events
+        eventSystem.Purge();    
+
+
+        InitializeStructural(); //structural
+  
+        //Stop current shell
+        currentShell.Stop();
+        //currentShell.AwaitStop(); //blocks until shell has stopped
+        
+
+        //Start new shell
+        InitializeDefualtAPILoaders(); // Default API
+        InitializeShell(); //Shell
+
+        //Make sure we dont immediatley re-restart once we unlock the restart
+        restartInputElapsedTime = 0f;
+
+        restartLocked = false;  //Unlock the restart
+        inputLocked = false; //Unlock the input
+        yield return new WaitForSeconds(0.05f);
+    }
 
     public bool RegisterComputer() 
     {
