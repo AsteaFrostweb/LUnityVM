@@ -39,7 +39,7 @@ public class LuaAPI
         //Count from 1 for as lua counts from 1... >:C
         for (int i = 1; i <= arr.Length; i++) 
         {
-            table[i.ToString()] = arr[i];
+            table[i.ToString()] = arr[i - 1];
         }
 
         return table;
