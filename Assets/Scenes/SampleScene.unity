@@ -872,7 +872,7 @@ MonoBehaviour:
   screenSize:
     x: 256
     y: 256
-  shellLines: 9
+  shellLines: 8
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
   restartTime: 1
