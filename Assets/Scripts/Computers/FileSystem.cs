@@ -12,6 +12,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using static UnityEditor.Handles;
 
+
 public class FileSystem : IAPILoader
 {
     private Shell host;
@@ -70,7 +71,7 @@ public class FileSystem : IAPILoader
 
     public LuaTable GetDirectoriesExposed(string path) 
     {
-        return LuaAPI.ArrayToTable<string>(host.enviroment, GetDirectories(path), RandomString(12));
+        return LuaAPI.ArrayToTable<string>(host.enviroment, GetDirectories(path), "");
     }
     public string[] GetDirectories(string path)
     {
@@ -183,15 +184,5 @@ public class FileSystem : IAPILoader
     }
 
 
-    //Utility
-    public static string RandomString(int length)
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        string val = "";
-        for (int i = 0; i < length; i++)
-        {
-            val += chars[(int)(UnityEngine.Random.Range(0, chars.Length - 1))];
-        }
-        return val;
-    }
+ 
 }
