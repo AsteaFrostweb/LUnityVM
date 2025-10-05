@@ -16,9 +16,40 @@ public class LuaAPI
         table = Utility.CreateTable(lua, tableName);
     }
 
-    public static LuaTable ComptuerEventToTable(Lua lua, ComputerEvent ev)
+    public static LuaTable ArrayToTableNamed<T>(Lua lua, T[] arr,string[] elementNames, string name)
     {
-        if (ev == null) return null;
+        if (arr == null || arr.Length == 0)
+            return null;
+        LuaTable table = Utility.CreateTable(lua, name);
+
+        //Count from 1 for as lua counts from 1... >:C
+        for (int i = 1; i <= arr.Length; i++)
+        {
+            table[elementNames[i - 1]] = arr[i - 1];
+        }
+
+        return table;
+    }
+    public static LuaTable ArrayToTable<T>(Lua lua, T[] arr, string name) 
+    {
+        if(arr == null || arr.Length == 0)
+            return null;
+        LuaTable table = Utility.CreateTable(lua, name);
+
+        //Count from 1 for as lua counts from 1... >:C
+        for (int i = 1; i <= arr.Length; i++) 
+        {
+            table[i.ToString()] = arr[i];
+        }
+
+        return table;
+    }
+
+
+    //Converts Comptuer Event into a LuaTable 
+    public static LuaTable ComptuerEventToTable(Lua lua, ComputerEvent ev)
+    {        if (ev == null) return null;
+
 
         var table = Utility.CreateTable(lua, "event");
         table["data1"] = ev.data1;

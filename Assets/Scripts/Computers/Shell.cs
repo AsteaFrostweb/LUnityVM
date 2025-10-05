@@ -27,7 +27,9 @@ public class Shell : IAPILoader
     
 
     public Lua enviroment { get; private set; }
-    public Computer host { get; private set; }    
+    public Computer host { get; private set; }
+    private FileSystem fileSystem;
+
 
     public string[] lines;
     private int cursorY = 0;
@@ -124,7 +126,11 @@ public class Shell : IAPILoader
         }
     }
 
-
+    private void InitializeFileSystem()
+    {
+        fileSystem = new FileSystem(host.localPath, this);
+        host.visibleSavePath = host.localPath;
+    }
     private void InitializeShellBaseCommands() 
     {
         shellBaseCommands = new Dictionary<string, Action<string[]>>()

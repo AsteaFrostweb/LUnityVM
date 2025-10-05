@@ -5,18 +5,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using Unity.Mathematics;
 using UnityEngine;
 using static UnityEditor.Handles;
 
 public class FileSystem : IAPILoader
 {
-    private Computer host;
+    private Shell host;
     private string rootPath;
     private FileStream currentStream;
 
-    public FileSystem(string rootpath, Computer _host) 
+    public FileSystem(string rootpath, Shell _host) 
     {
         host = _host;
         Debug.Log("FS const: directory exists?");
@@ -66,6 +68,10 @@ public class FileSystem : IAPILoader
         return files;
     }
 
+    public LuaTable GetDirectoriesExposed(string path) 
+    {
+        return LuaAPI.ArrayToTable<string>(host.enviroment, GetDirectories(path), RandomString(12));
+    }
     public string[] GetDirectories(string path)
     {
    
@@ -108,7 +114,7 @@ public class FileSystem : IAPILoader
                     catch (System.Exception e)
                     {
                         Debug.Log("Exception while trying to open file:" + e.ToString());
-                        host.currentShell.WriteLineError("Exception while trying to open file:" + e.ToString());
+                        host.WriteLineError("Exception while trying to open file:" + e.ToString());
                         return false;
                     }
                     break;
@@ -120,7 +126,7 @@ public class FileSystem : IAPILoader
                     catch (System.Exception e)
                     {
                         Debug.Log("Exception while trying to open file:" + e.ToString());
-                        host.currentShell.WriteLineError("Exception while trying to open file:" + e.ToString());
+                        host.WriteLineError("Exception while trying to open file:" + e.ToString());
                         return false;
                     }
                     break;
@@ -132,7 +138,7 @@ public class FileSystem : IAPILoader
                     catch (System.Exception e)
                     {
                         Debug.Log("Exception while trying to open file:" + e.ToString());
-                        host.currentShell.WriteLineError("Exception while trying to open file:" + e.ToString());
+                        host.WriteLineError("Exception while trying to open file:" + e.ToString());
                         return false;
                     }
                     break;
@@ -153,9 +159,10 @@ public class FileSystem : IAPILoader
         return false;
     }
 
+    //Returns "___NONE___" if the stream cannot be read from or doesnt exist. 
     private string ReadLine() 
     {
-        string line = "Nothing Readable From File";
+        string line = "___NONE___";
 
         if (currentStream != null && currentStream.CanRead)
         {
@@ -167,11 +174,24 @@ public class FileSystem : IAPILoader
     public void AddAPI(Lua lua)
     {
         new LuaAPI(lua, "fs")
-            .RegisterFunction("getDirectories", this, nameof(GetDirectories))
+            .RegisterFunction("getDirectories", this, nameof(GetDirectoriesExposed))
             .RegisterFunction("getFiles", this, nameof(GetFiles))
             .RegisterFunction("open", this, nameof(OpenFile))
             .RegisterFunction("close", this, nameof(CloseStream))
             .RegisterFunction("readLine", this, nameof(ReadLine));
         
+    }
+
+
+    //Utility
+    public static string RandomString(int length)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        string val = "";
+        for (int i = 0; i < length; i++)
+        {
+            val += chars[(int)(UnityEngine.Random.Range(0, chars.Length - 1))];
+        }
+        return val;
     }
 }

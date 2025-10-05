@@ -77,11 +77,6 @@ public class Computer : Structural
     {
         screen = new ComputerScreen(screenMesh, screenSize);
     }
-    private void InitializeFileSystem() 
-    {
-        fileSystem = new FileSystem(localPath, this);
-        visibleSavePath = localPath;
-    }
 
     private void InitializeEventSystem() 
     {
@@ -111,7 +106,7 @@ public class Computer : Structural
 
         InitializeEventSystem();       
         InitializeStructural();
-        InitializeFileSystem();
+
         InitializeNetworking();
 
         //Creates the screen of the computer (render texture, Canvas and camera)
