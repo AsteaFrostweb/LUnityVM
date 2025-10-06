@@ -50,25 +50,7 @@
 
 ## Getting Started
 
-```csharp
-using LUnityVM;
-
-public class Example : MonoBehaviour
-{
-    void Start()
-    {
-        // Create a new computer
-        var computer = ComputerManager.CreateComputer();
-
-        // Run a Lua script in a shell
-        var shell = computer.OpenShell();
-        shell.RunScript("print('Hello from Lua!')");
-
-        // Send an event to another computer
-        computer.LNet.BroadcastEvent("HelloEvent", "Hello from Computer 1!");
-    }
-}
-```
+- If youre already reading this then I'm sure you can figure it out.
 
 ## Planned Features / Roadmap
 
