@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using NLua;
+using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using System;
 using System.Collections;
@@ -26,36 +27,60 @@ namespace Computers
         [Serializable]
         public enum State { ON, OFF }
 
+        //-----------------UNITY INSPECTOR VALUES--------------------------
+
+        //---COMPUTER---
+        [Header("Computer")]
+        [Tooltip("The in game ID of the computer")]
         public int inspectorID;
-        public float inspectorMaxHealth;
+        [Tooltip("Weather the computer is on or off (currently non working)")]
         public Computer.State state;
+        [Tooltip("The mesh to display the computer screen render texture on")]
         public MeshRenderer screenMesh;
+        [Tooltip("The size of the screen render texture")]
         public int2 screenSize;
+        [Tooltip("The time you need to hold ctrl+r to restart the selected computer")]
+        public float restartTime = 1.0f;
+
+        //---STRUCTURAL---
+        [Header("Structural")]
+        public float inspectorMaxHealth;
+
+        [Header("Shell")]
         public int shellLines = Shell.DEFAULT_LINE_NUMBER;
-        public string shellInitializationString = "Welcome to LUnity OS v1.0.1";
-        public string visibleSavePath = "NONE";
-        public float restartTime = 2.0f;
-        private float restartInputElapsedTime = 0f;
+        public string shellInitializationString = "Welcome to LUnity OS v1.0.1";        
+ 
 
         [Header("Read Only")]
+        public string visibleSavePath = "NONE";
         public string[] shellLinesArr;
+
 
         //---NON INSPECTOR---
 
+        //Computers dictionary for finding computers by ID
         public static Dictionary<int, Computer> computers = new Dictionary<int, Computer>();
 
+        //Computer ID
         public int ID { get; private set; }
+        
+        //Shell
         private List<Shell> shells;
         public Shell currentShell { get; private set; }
+
+        //Display
+        private Screen screen;
+
+        //Network
         public LuaNet network { get; private set; }
 
-        private Screen screen;
+        //Event System
         public EventSystem eventSystem { get; private set; } 
 
+        //Shared Memory
         public ConcurrentDictionary<string, object> sharedMemory = new ConcurrentDictionary<string, object>();
 
-        private bool restartLocked = false;
-        private bool inputLocked = false;
+       
 
         public string localPath { get { return GameData.ActiveSavePath() + ID.ToString() + "/"; } }
 
@@ -63,7 +88,9 @@ namespace Computers
 
         public object[] defaultAPILoaders;
 
-
+        private float restartInputElapsedTime = 0f;
+        private bool restartLocked = false;
+        private bool inputLocked = false;
 
         //Function to set this pc as the current input focus
         public void SetFocus()
@@ -174,10 +201,10 @@ namespace Computers
         {
             Vector3 position = new Vector3();
 
-            ActionAwaiter.AwaitAction(() => { position = transform.position; });   //Waits for the main thread to preform the action specified before continuing. like a baws
+            position = transform.position;   //Waits for the main thread to preform the action specified before continuing. like a baws
 
 
-            LuaTable table = Utility.CreateTable(currentShell.enviroment, "position");
+            LuaTable table = Utility.CreateTable(currentShell.enviroment);
             table["x"] = position.x;
             table["y"] = position.y;
             table["z"] = position.z;
