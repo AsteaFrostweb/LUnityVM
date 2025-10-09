@@ -1,17 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using NLua;
-using Unity.VisualScripting;
-using System.IO.Enumeration;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System;
-using UnityEngine.Rendering.Universal;
-using Unity.Mathematics;
-using TMPro;
 using JetBrains.Annotations;
+using NLua;
+using NUnit.Framework.Constraints;
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Enumeration;
+using System.Runtime.CompilerServices;
+using System.Xml.Linq;
+using TMPro;
+using Unity.Mathematics;
+using Unity.VisualScripting;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 //using System.Runtime.InteropServices.WindowsRuntime;
 
 
@@ -47,7 +50,9 @@ namespace Computers
         public LuaNet network { get; private set; }
 
         private Screen screen;
-        public EventSystem eventSystem { get; private set; }
+        public EventSystem eventSystem { get; private set; } 
+
+        public ConcurrentDictionary<string, object> sharedMemory = new ConcurrentDictionary<string, object>();
 
         private bool restartLocked = false;
         private bool inputLocked = false;
@@ -154,10 +159,11 @@ namespace Computers
         public override void AddAPI(Lua lua)
         {
             base.AddAPI(lua);
-            LuaTable osAPI = Utility.CreateTable(lua, "os");
-            //
-            osAPI["ID"] = lua.RegisterFunction("os.getID", this, typeof(Computer).GetMethod("GetID"));
-            osAPI["getPosition"] = lua.RegisterFunction("os.getPosition", this, typeof(Computer).GetMethod("GetPosition"));
+            new LuaAPI(lua, "os")
+                .RegisterFunction("getID", this, nameof(GetID))
+                .RegisterFunction("getPosition", this, nameof(GetPosition))
+                .RegisterFunction("tryStore", this, nameof(TryStore))
+                .RegisterFunction("tryRead", this, nameof(TryRead));    
         }
 
         public int GetID()
@@ -177,6 +183,18 @@ namespace Computers
             table["z"] = position.z;
             return table;
         }
+        public bool TryStore(string key, object value) 
+        {
+            return sharedMemory.TryAdd(key, value);
+        }
+        public object TryRead(string key) 
+        {
+            object value = null;
+            sharedMemory.TryGetValue(key, out value);
+
+            return value;
+        }
+
 
         private void Restart()
         {
@@ -201,6 +219,7 @@ namespace Computers
             InitializeStructural(); //structural
 
 
+            sharedMemory = new ConcurrentDictionary<string, object>();
 
 
             //Start new shell
@@ -240,6 +259,7 @@ namespace Computers
                 s.Stop();
             }
             eventSystem.Purge();
+            sharedMemory = null;
         }
 
         private void OnDestroy()
