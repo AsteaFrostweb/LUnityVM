@@ -866,16 +866,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inspectorID: 4
-  inspectorMaxHealth: 100
   state: 0
   screenMesh: {fileID: 2011640795}
   screenSize:
     x: 256
     y: 256
-  shellLines: 8
+  restartTime: 1
+  inspectorMaxHealth: 100
+  shellLines: 11
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
-  restartTime: 1
   shellLinesArr: []
 --- !u!4 &816070439 stripped
 Transform:
@@ -1822,16 +1822,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inspectorID: 3
-  inspectorMaxHealth: 100
   state: 0
   screenMesh: {fileID: 707384772}
   screenSize:
     x: 256
     y: 256
+  restartTime: 1
+  inspectorMaxHealth: 100
   shellLines: 11
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
-  restartTime: 1
   shellLinesArr: []
 --- !u!114 &2025642880
 MonoBehaviour:
