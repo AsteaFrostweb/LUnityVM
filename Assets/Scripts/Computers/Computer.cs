@@ -65,7 +65,7 @@ namespace Computers
         public int ID { get; private set; }
         
         //Shell
-        private List<Shell> shells;
+        public List<Shell> shells { get; private set; }
         public Shell currentShell { get; private set; }
 
         //Display
@@ -84,7 +84,7 @@ namespace Computers
 
         public string localPath { get { return GameData.ActiveSavePath() + ID.ToString() + "/"; } }
 
-        public string PATH { get; private set; } = "rom/programs/:rom/programs/ship/";
+        public string PATH { get; private set; } = "rom/programs/";
 
         public object[] defaultAPILoaders;
 
