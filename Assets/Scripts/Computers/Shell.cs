@@ -21,11 +21,12 @@ namespace Computers
 {
     public class Shell : IAPILoader
     {
+        // CONSTANTS
         public const int DEFAULT_LINE_NUMBER = 20;
-
         public const int DEFAULT_FONT_SIZE = 20;
 
-        private int randomID = 0;
+        //Random Unique shell ID
+        public int UID { get; private set; } = 0;
 
 
         public Lua enviroment { get; private set; }
@@ -55,15 +56,19 @@ namespace Computers
 
         //represent weather the _ is current added to the end of lines[cursorY]
         private bool cursorActive = false;
+
+
+        // ------------------------ CONSTRUCTORS -----------------------
+
         public Shell(string _shellInitializationString, Computer _host)
         {
 
             host = _host;
-            randomID = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 10f) * 100f);
+            UID = GetRandomUID();
 
             InitializeFileSystem(_host);
             InitializeDefualtAPILoaders();
-            enviroment = CreateLuaEnviroment(defaultAPILoaders);
+            InitializeLuaEnviroment(defaultAPILoaders);
 
             lineNumber = 10; // default if not set
             lines = new string[lineNumber];
@@ -83,10 +88,9 @@ namespace Computers
             for (int i = 0; i < lineCount; i++)
                 lines[i] = "";
         }
-        private void InitializeDefualtAPILoaders()
-        {
-            defaultAPILoaders = new object[] { fileSystem, this, host.network };
-        }
+
+
+        // ------------------------ STOP/START -----------------------
         public Shell Start()
         {
             cts = new CancellationTokenSource();
@@ -99,7 +103,7 @@ namespace Computers
         }
         public void Stop()
         {
-            Debug.Log($"[{randomID}]Stopping shell!");
+            Debug.Log($"[{UID}]Stopping shell!");
 
             fileSystem.CloseStream();
 
@@ -111,7 +115,7 @@ namespace Computers
                 // Wait up to 500ms for cooperative exit
                 if (!mainThread.Join(500))
                 {
-                    Debug.LogWarning($"[{randomID}] Shell thread didn’t stop, aborting...");
+                    Debug.LogWarning($"[{UID}] Shell thread didn’t stop, aborting...");
                     try { mainThread.Abort(); } catch { }
                 }
             }
@@ -121,6 +125,7 @@ namespace Computers
 
 
 
+        // ------------------------ SHELL MAIN LOOP -----------------------
         public void Main()
         {
             Sleep(0.5f);
@@ -134,6 +139,12 @@ namespace Computers
             }
         }
 
+
+        // ------------------------ INITIALIZATION -----------------------
+        private void InitializeDefualtAPILoaders()
+        {
+            defaultAPILoaders = new object[] { fileSystem, this, host.network };
+        }
         private void InitializeFileSystem(Computer _host)
         {
 
@@ -143,64 +154,37 @@ namespace Computers
         private void InitializeShellBaseCommands()
         {
             shellBaseCommands = new Dictionary<string, Action<string[]>>()
-        {
-            {"ls", ListDirectory },
-            {"cd", ChangeDirectory },
-            { "cls", CLS }
-        };
+            {
+                {"ls", ListDirectory },
+                {"cd", ChangeDirectory },
+                { "cls", CLS }
+            };
         }
-        private bool ParseCommand(string s)
+        private void InitializeLuaEnviroment(object[] apiLoaders)
         {
+            //Create lua enviroment
+            Lua lua = new Lua();
 
-            string[] args = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (args == null) return true;
-            if (args.Length <= 0) return true;
 
-            //If the shellBaseCommands dictionary contains the command entered
-            if (shellBaseCommands != null && shellBaseCommands.ContainsKey(args[0]))
+            //Loop through and add each APILoaders object library to the lua enviroment
+            foreach (object loader in apiLoaders)
             {
-                Action<string[]> action = shellBaseCommands[args[0]];
-                action?.Invoke(args);
-                return true;
-            }
-            else if (FindAndRunFile(args[0]))
-            {
-                return true;
-            }
-            else
-            {
-                WriteLineError($"No command found: {args[0]}");
-                return false;
-            }
-        }
-
-        private bool FindAndRunFile(string filePath)
-        {
-
-            string dirPath = currentDirectoryFullPath;
-
-            if ((File.Exists(Path.Combine(dirPath, filePath))) && (Path.GetExtension(filePath) == ".lua"))
-            {
-                Run(Path.Combine(currentDirectory, filePath));
-                return true;
-            }
-            //Debug.Log("Splitting host path:" + host.PATH);
-            string[] paths = host.PATH.Split(":");
-            foreach (string s in paths)
-            {
-                string path = Path.Combine(s, filePath);
-                //Debug.Log("Checking if file exists: " + Path.Combine(host.localPath,path));
-                if (Path.GetExtension(filePath) == ".lua" && File.Exists(Path.Combine(host.localPath, path)))
+                if (loader is IAPILoader)
                 {
-                    Debug.Log("Runnig file at path: " + path);
-                    Run(path);
-                    return true;
+                    (loader as IAPILoader).AddAPI(lua);
                 }
             }
 
-            return false;
+            AddAPI(lua);
+
+            //return created enviroment
+            enviroment = lua;
         }
 
+
+
+
+        // ------------------------ DIRECTORY TRAVERSAL -----------------------
         public void GotoParentDirectory()
         {
 
@@ -284,57 +268,7 @@ namespace Computers
 
 
 
-
-        private Lua CreateLuaEnviroment(object[] apiLoaders)
-        {
-            //Create lua enviroment
-            Lua lua = new Lua();
-
-
-            //Loop through and add each APILoaders object library to the lua enviroment
-            foreach (object loader in apiLoaders)
-            {
-                if (loader is IAPILoader)
-                {
-                    (loader as IAPILoader).AddAPI(lua);
-                }
-            }
-
-            AddAPI(lua);
-
-            //return created enviroment
-            return lua;
-        }
-
-
-        public void Run(string fileName)
-        {
-            string filePath = Path.Combine(host.localPath, fileName);
-            if (File.Exists(filePath) && Path.GetExtension(filePath) == ".lua")
-            {
-                //enviroment.DoFile(host.localPath + fileName);
-                try
-                {
-                    enviroment.DoFile(host.localPath + fileName);
-                }
-                catch (LuaException ex)
-                {
-                    //remove the root path from message error
-                    //Then append it onto out current virtual directory so error message appears local to machine
-
-                    int lastSlashIndex = ex.Message.LastIndexOfAny(new char[] { '/', '\\' });
-                    string trimmedMessage = lastSlashIndex > 0 ? ex.Message.Substring(lastSlashIndex + 1) : ex.Message;
-                    string finalMessage = currentDirectory != "" ? currentDirectory + "/" + trimmedMessage : trimmedMessage;
-                    WriteLineError("LuaScriptException: " + finalMessage);
-                    if (ex.InnerException != null)
-                        WriteLineError(ex.InnerException.Message.ToString());
-                    //
-                    //WriteLineError(ex.InnerException.StackTrace.ToString());
-                }
-
-            }
-        }
-
+        // ------------------------ WRITE FUNCTIONS -----------------------
 
         public void Write(string s)
         {
@@ -348,7 +282,7 @@ namespace Computers
         }
         public void WriteLine(string s)
         {
-            Debug.Log($"[{randomID}][isMainShell:{this == host.currentShell}]writing :" + s + " to line: " + cursorY.ToString());
+            Debug.Log($"[{UID}][isMainShell:{this == host.currentShell}]writing :" + s + " to line: " + cursorY.ToString());
 
             if (cursorActive)
             {
@@ -375,6 +309,7 @@ namespace Computers
         }
 
 
+        // ------------------------ READ FUCTIONS -----------------------
 
         public string ReadLine()
         {
@@ -542,7 +477,10 @@ namespace Computers
             }
         }
 
-        //used for binding to action<string[]> for shell commands dictionary
+
+
+        // ------------------------ CLEAR / DELETE FUNCTIONS ---
+        //args param only used for binding to action<string[]> for shell commands dictionary
         private void CLS(string[] args) => Clear();
         public void Clear()
         {
@@ -558,11 +496,122 @@ namespace Computers
         }
 
 
+
+        // ------------------------ UTILITY -----------------------
+
+        // LOOKS FOR FILES WITH PATH OF FILEPATH AND ALSO APPENDS THE FILEPATH TO EACH SECTION OF THE "PATH" VARIABLE
+        // AND ALSO LOOKS IN THOSE LOCATOINS FOR FILES TO RUN
+        private bool FindAndRunFile(string filePath)
+        {
+
+            string dirPath = currentDirectoryFullPath;
+
+            if ((File.Exists(Path.Combine(dirPath, filePath))) && (Path.GetExtension(filePath) == ".lua"))
+            {
+                Run(Path.Combine(currentDirectory, filePath));
+                return true;
+            }
+            //Debug.Log("Splitting host path:" + host.PATH);
+            string[] paths = host.PATH.Split(":");
+            foreach (string s in paths)
+            {
+                string path = Path.Combine(s, filePath);
+                //Debug.Log("Checking if file exists: " + Path.Combine(host.localPath,path));
+                if (Path.GetExtension(filePath) == ".lua" && File.Exists(Path.Combine(host.localPath, path)))
+                {
+                    Debug.Log("Runnig file at path: " + path);
+                    Run(path);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+
+        //Runs a given filename via the Lua.DoFIle functoin handling exceptions and printing them to screen where necissary
+        public void Run(string fileName)
+        {
+            string filePath = Path.Combine(host.localPath, fileName);
+            if (File.Exists(filePath) && Path.GetExtension(filePath) == ".lua")
+            {
+                //enviroment.DoFile(host.localPath + fileName);
+                try
+                {
+                    enviroment.DoFile(host.localPath + fileName);
+
+                }
+                catch (LuaException ex)
+                {
+                    //remove the root path from message error
+                    //Then append it onto out current virtual directory so error message appears local to machine
+
+                    int lastSlashIndex = ex.Message.LastIndexOfAny(new char[] { '/', '\\' });
+                    string trimmedMessage = lastSlashIndex > 0 ? ex.Message.Substring(lastSlashIndex + 1) : ex.Message;
+                    string finalMessage = currentDirectory != "" ? currentDirectory + "/" + trimmedMessage : trimmedMessage;
+                    WriteLineError("LuaScriptException: " + finalMessage);
+                    if (ex.InnerException != null)
+                        WriteLineError(ex.InnerException.Message.ToString());
+                    //
+                    //WriteLineError(ex.InnerException.StackTrace.ToString());
+                }
+
+            }
+        }
+
+        //Sleeps for seconds
         public void Sleep(float seconds)
         {
             System.Threading.Thread.Sleep((int)(seconds * 1000));
         }
 
+        //Parses shell command using shellBaseCommands dictionary
+        private bool ParseCommand(string s)
+        {
+
+            string[] args = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (args == null) return true;
+            if (args.Length <= 0) return true;
+
+            //If the shellBaseCommands dictionary contains the command entered
+            if (shellBaseCommands != null && shellBaseCommands.ContainsKey(args[0]))
+            {
+                Action<string[]> action = shellBaseCommands[args[0]];
+                action?.Invoke(args);
+                return true;
+            }
+            else if (FindAndRunFile(args[0]))
+            {
+                return true;
+            }
+            else
+            {
+                WriteLineError($"No command found: {args[0]}");
+                return false;
+            }
+        }
+        private int GetRandomUID() 
+        {
+            //generate random int between 0-100,000
+            int num = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 100f) * 1000f);
+            int attempts = 0;
+            int maxAttempts = 10;
+
+            while (attempts < maxAttempts) 
+            {
+                //IF NO COMPUTER CONTAINS ANY SHELLS WITH THE CURRENT NUM AS IT'S UID RETURN NUM AS THIS SHELLS UID
+                if (!Computer.computers.Values.Any(c => c.shells.Any(s => s.UID == num))) 
+                {                    
+                    return num;
+                }
+                attempts++;
+                num = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 100f) * 1000f);
+            }
+
+            return -1; //Return -1 if a uniwue ID cannot be found n the max attempts
+        }
+
+        // ----------------------- LUA API -----------------------
         public void AddAPI(Lua lua)
         {
             new LuaAPI(lua, "shell")
@@ -581,19 +630,6 @@ namespace Computers
 
 
 
-        private bool IsCharacterKey(KeyCode keyCode)
-        {
-            return CharacterKeys.Contains(keyCode);
-        }
-
-        private readonly HashSet<KeyCode> CharacterKeys = new HashSet<KeyCode>
-        {
-            KeyCode.A, KeyCode.B, KeyCode.C, KeyCode.D, KeyCode.E, KeyCode.F, KeyCode.G,
-            KeyCode.H, KeyCode.I, KeyCode.J, KeyCode.K, KeyCode.L, KeyCode.M, KeyCode.N,
-            KeyCode.O, KeyCode.P, KeyCode.Q, KeyCode.R, KeyCode.S, KeyCode.T, KeyCode.U,
-            KeyCode.V, KeyCode.W, KeyCode.X, KeyCode.Y, KeyCode.Z,
-            KeyCode.Alpha0, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4,
-            KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9
-        };
+     
     }
 }
