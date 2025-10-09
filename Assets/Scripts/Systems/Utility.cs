@@ -4,10 +4,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 public static class Utility 
 {
+    public static LuaTable CreateTable(Lua lua) => CreateTable(lua, "");
     public static LuaTable CreateTable(Lua lua, string name)
     {
         lua.NewTable(name);

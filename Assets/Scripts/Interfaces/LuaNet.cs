@@ -2,6 +2,7 @@ using NLua;
 using static System.Convert;
 using Unity.VisualScripting;
 using UnityEngine;
+using Computers;
 
 public class LuaNet : IAPILoader
 {
@@ -54,7 +55,7 @@ public class LuaNet : IAPILoader
         if (ce == null)
             return null;
         
-        return LuaAPI.ComptuerEventToTable(host.currentShell.enviroment, ce);
+        return ce.ToLuaTable(host.currentShell.enviroment);
     }
     private ComputerEvent Receive(int port, float timeout) 
     {

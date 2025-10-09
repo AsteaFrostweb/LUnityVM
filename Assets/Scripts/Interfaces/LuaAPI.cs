@@ -46,20 +46,7 @@ public class LuaAPI
     }
 
 
-    //Converts Comptuer Event into a LuaTable 
-    public static LuaTable ComptuerEventToTable(Lua lua, ComputerEvent ev)
-    {        if (ev == null) return null;
-
-
-        var table = Utility.CreateTable(lua, "event");
-        table["data1"] = ev.data1;
-        table["data2"] = ev.data2;
-        table["data3"] = ev.data3;
-        table["type"] = ev.eventType;
-
-
-        return table;
-    }
+  
 
     // Register a method by name using nameof
     public LuaAPI RegisterFunction(string funcName, object target, string methodName)
