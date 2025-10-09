@@ -35,14 +35,14 @@ namespace Computers
 
         public string[] lines;
         private int cursorY = 0;
-        private bool cursorBlink = true;
+
         public int lineNumber { get; private set; } = DEFAULT_LINE_NUMBER;
 
         //TASK SHIZZ
         private Thread mainThread;
         public bool isRunning => mainThread != null;
         CancellationTokenSource cts;
-        CancellationToken cancelationToken => cts.Token;
+    
 
         private string shellInitializationString;
 
