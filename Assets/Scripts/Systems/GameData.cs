@@ -33,7 +33,7 @@ public struct Focus
 
 public static class GameData
 {
-    public static string currentSaveExtension = "/.spacegame/Saves/Test/";
+    public static string currentSaveExtension = "/ComputerData/";
     public static bool playerRotationInputLocked = false;    
     public static GameObject firstPersonCamera;
     public static GameObject thirdPersonCamera;
