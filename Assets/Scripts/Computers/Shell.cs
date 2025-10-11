@@ -26,7 +26,7 @@ namespace Computers
         public const int DEFAULT_FONT_SIZE = 20;
 
         //Random Unique shell ID
-        public int UID { get; private set; } = 0;
+        public string UID { get; private set; } = "NULL";
 
 
         public Lua enviroment { get; private set; }
@@ -64,7 +64,7 @@ namespace Computers
         {
 
             host = _host;
-            UID = GetRandomUID();
+            UID = UIDGenerator.GenerateUID();
 
             InitializeFileSystem(_host);
             InitializeDefualtAPILoaders();
@@ -590,26 +590,7 @@ namespace Computers
                 return false;
             }
         }
-        private int GetRandomUID() 
-        {
-            //generate random int between 0-100,000
-            int num = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 100f) * 1000f);
-            int attempts = 0;
-            int maxAttempts = 10;
-
-            while (attempts < maxAttempts) 
-            {
-                //IF NO COMPUTER CONTAINS ANY SHELLS WITH THE CURRENT NUM AS IT'S UID RETURN NUM AS THIS SHELLS UID
-                if (!Computer.computers.Values.Any(c => c.shells.Any(s => s.UID == num))) 
-                {                    
-                    return num;
-                }
-                attempts++;
-                num = Mathf.FloorToInt(UnityEngine.Random.Range(0f, 100f) * 1000f);
-            }
-
-            return -1; //Return -1 if a uniwue ID cannot be found n the max attempts
-        }
+   
 
         // ----------------------- LUA API -----------------------
         public void AddAPI(Lua lua)
