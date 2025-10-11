@@ -17,14 +17,8 @@ public class ActionAwaiter
     public void Finish() 
     {
         action.Invoke();
-        finished = true;
-    }
+        finished = true;   }
 
 
-    public static void AwaitAction(Action a) 
-    {
-        ActionAwaiter awaiter = new ActionAwaiter(a);
 
-        while (!awaiter.finished) { }
-    }
 }
