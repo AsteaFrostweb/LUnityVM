@@ -271,6 +271,14 @@ namespace Computers
         {
             Debug.Log($"[{UID}][isMainShell:{this == host.currentShell}]writing :" + s + " to line: " + cursorY.ToString());
 
+            //handles multiple line strings semi-recursivley
+            string[] multiLines = s.Split('\n');
+            if (multiLines.Length > 1) 
+            {
+                foreach(string line in multiLines) WriteLine(line);
+                return;
+            }
+
             if (cursorActive)
             {
 

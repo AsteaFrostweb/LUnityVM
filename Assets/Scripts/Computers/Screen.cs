@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine.UI;
+using System.Diagnostics;
 
 namespace Computers
 {
@@ -88,11 +89,11 @@ namespace Computers
             int startIndex = 0;
 
             // Calculate the start index of non-empty lines
-            for (int i = 0; i < lines.Length; i++)
+            for (int i = lines.Length - 1; i >= 0; i--)
             {
-                if (string.IsNullOrEmpty(lines[i]))
+                if (!string.IsNullOrEmpty(lines[i]))
                 {
-                    lastIndex = i - 1;
+                    lastIndex = i;
                     break;
                 }
             }
@@ -101,7 +102,7 @@ namespace Computers
             for (int i = lastIndex; i >= 0; i--)
             {
                 int wrappedLines = CalculateWrappedLines(lines[i]);
-
+                //UnityEngine.Debug.Log("Wrapped lines for string: " + wrappedLines + " : " + lines[i] + "INdex:" + i);
                 if (remainingLines >= wrappedLines)
                 {
                     remainingLines -= wrappedLines;
@@ -127,16 +128,16 @@ namespace Computers
 
         private int CalculateWrappedLines(string text)
         {
-            // Clear the hidden text box
-            hiddenTextBox.text = "";
+            if (text == "") return 1;
 
-            // Set the new text and let it calculate the wrapping
             hiddenTextBox.text = text;
-            hiddenTextBox.ForceMeshUpdate();
-            // Get the number of wrapped lines
+            hiddenTextBox.ForceMeshUpdate(false, true);
             int wrappedLines = hiddenTextBox.textInfo.lineCount;
-            // Debug.Log("Lines: " + wrappedLines.ToString() + " - " + text);
+
+            
+
             return wrappedLines;
         }
+
     }
 }

@@ -1050,7 +1050,7 @@ MonoBehaviour:
     y: 512
   fontSize: 26
   inspectorMaxHealth: 100
-  shellLines: 11
+  shellLines: 16
   shellInitializationString: Welcome to LUnityVM
   visibleSavePath: NONE
   shellLinesArr: []
