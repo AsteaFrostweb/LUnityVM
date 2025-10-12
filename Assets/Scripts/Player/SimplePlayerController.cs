@@ -1,3 +1,4 @@
+using Computers;
 using UnityEngine;
 
 public class SimplePlayerController : MonoBehaviour
@@ -27,7 +28,7 @@ public class SimplePlayerController : MonoBehaviour
     void Update()
     {
         //currentFocudsedMachine = -1 if there is no COmpuiter currently selected by player
-        if (GameData.currentFocusedMachine != -1)
+        if (ComputerData.currentFocusedMachine != -1)
             return;
 
         HandleMovement();

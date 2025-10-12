@@ -1,3 +1,4 @@
+using Computers;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -15,8 +16,8 @@ public class SelectableTextUpdater : MonoBehaviour
     {
         if (textMesh != null) 
         {
-            if(GameData.currentFocusedMachine == -1)
-                textMesh.text = GameData.currentSelectable?.actionText;
+            if(ComputerData.currentFocusedMachine == -1)
+                textMesh.text = ComputerData.currentSelectable?.actionText;
             else
                 textMesh.text = "";
         }

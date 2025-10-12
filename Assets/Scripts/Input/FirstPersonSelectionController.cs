@@ -1,3 +1,4 @@
+using Computers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -19,9 +20,9 @@ public class FirstPersonSelectionController : MonoBehaviour
             if (selectable != null)
             {
 
-                if (GameData.currentSelectable != selectable)
+                if (ComputerData.currentSelectable != selectable)
                 {
-                    GameData.currentSelectable = selectable;
+                    ComputerData.currentSelectable = selectable;
                 }
 
 
@@ -32,12 +33,12 @@ public class FirstPersonSelectionController : MonoBehaviour
             }
             else
             {
-                GameData.currentSelectable = null;
+                ComputerData.currentSelectable = null;
             }
         }
         else 
         {
-            GameData.currentSelectable = null;
+            ComputerData.currentSelectable = null;
         }
 
         //will be changes to esc once left editor phase as esc input gets captures by editor before i can use it...
@@ -45,7 +46,7 @@ public class FirstPersonSelectionController : MonoBehaviour
         {
     
             //Set ID to -1 to mean no machine is selected
-            GameData.currentFocusedMachine = -1;
+            ComputerData.currentFocusedMachine = -1;
         }
     }
 }
