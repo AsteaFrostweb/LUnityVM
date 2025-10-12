@@ -122,13 +122,14 @@ namespace Computers
         {
             network = new LuaNet(this);
         }
-
-        private void InitializeShell()
+        private void InitializeDefualtAPIALoders()
         {
-            //Get the default API loaders and any externally assigned ones
-            IAPILoader[] apiLoaders = defaultAPILoaders.Concat(GetExternalAPI(APILoaders)).ToArray();
+            defaultAPILoaders = new IAPILoader[] { network, this };
+        }
+        private void InitializeShell()
+        {         
 
-            currentShell = new Shell(shellInitializationString, apiLoaders, this, shellLines).Start();
+            currentShell = new Shell(shellInitializationString, this, shellLines).Start();
             shells = new List<Shell> { currentShell };
         }
 
@@ -150,7 +151,7 @@ namespace Computers
             //Define an object array with the api loader interface to call "AddAPI" on them. Shell then creates lua enviroment
             //Would need a new "CreateLuaEnviroment" function that takes a bool as to whether or not to include shell lib
 
-
+            InitializeDefualtAPIALoders();
             InitializeShell(); //Finally intialize the shell         
         }
 
@@ -261,16 +262,21 @@ namespace Computers
             yield return new WaitForSeconds(0.05f);
         }
 
-        private IAPILoader[] GetExternalAPI(List<MonoBehaviour> monos)
+
+        public IAPILoader[] GetAPILoaders()
         {
             List<IAPILoader> loadersList = new List<IAPILoader>();
-            foreach (MonoBehaviour monoBehaviour in monos) 
+
+            loadersList.AddRange(defaultAPILoaders);
+
+            foreach (MonoBehaviour monoBehaviour in APILoaders)
             {
                 if (monoBehaviour != null && monoBehaviour is IAPILoader)
                     loadersList.Add(monoBehaviour as IAPILoader);
             }
             return loadersList.ToArray();
         }
+
 
         public bool RegisterComputer()
         {

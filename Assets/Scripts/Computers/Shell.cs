@@ -45,7 +45,7 @@ namespace Computers
         private Dictionary<string, Action<string[]>> shellBaseCommands;
 
         public IAPILoader[] defaultAPILoaders;
-
+        public IAPILoader[] APILoaders => defaultAPILoaders.Concat(host.GetAPILoaders()).ToArray();
         //represent weather the _ is current added to the end of lines[cursorY]
         private bool cursorActive = false;
 
@@ -60,7 +60,7 @@ namespace Computers
 
             InitializeFileSystem(_host);
             InitializeDefualtAPILoaders();
-            InitializeLuaEnviroment(defaultAPILoaders);
+            InitializeLuaEnviroment(APILoaders);
 
             lineNumber = 10; // default if not set
             lines = new string[lineNumber];
@@ -71,7 +71,7 @@ namespace Computers
             InitializeShellBaseCommands();
         }
         // Constructor with API loaders, host, and line count
-        public Shell(string _shellInitializationString, IAPILoader[] apiLoaders, Computer _host, int lineCount)
+        public Shell(string _shellInitializationString, Computer _host, int lineCount)
             : this(_shellInitializationString, _host) // calls previous constructor
         {
             host = _host;
@@ -135,7 +135,7 @@ namespace Computers
         // ------------------------ INITIALIZATION -----------------------
         private void InitializeDefualtAPILoaders()
         {
-            defaultAPILoaders = new IAPILoader[] { fileSystem, this, host.network };
+            defaultAPILoaders = new IAPILoader[] { fileSystem, this };
         }
         private void InitializeFileSystem(Computer _host)
         {
@@ -152,22 +152,17 @@ namespace Computers
                 { "cls", CLS }
             };
         }
-        private void InitializeLuaEnviroment(object[] apiLoaders)
+        private void InitializeLuaEnviroment(IAPILoader[] apiLoaders)
         {
             //Create lua enviroment
             Lua lua = new Lua();
 
 
             //Loop through and add each APILoaders object library to the lua enviroment
-            foreach (object loader in apiLoaders)
+            foreach (IAPILoader loader in apiLoaders)
             {
-                if (loader is IAPILoader)
-                {
-                    (loader as IAPILoader).AddAPI(lua);
-                }
-            }
-
-            AddAPI(lua);
+                loader.AddAPI(lua);
+            }                        
 
             //return created enviroment
             enviroment = lua;
