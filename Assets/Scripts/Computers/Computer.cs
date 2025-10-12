@@ -92,7 +92,7 @@ namespace Computers
 
         public string PATH { get; private set; } = "rom/programs/";
 
-        public IAPILoader[] defaultAPILoaders;
+        public IAPILoader[] defaultAPILoaders = new IAPILoader[0];
 
         private float restartInputElapsedTime = 0f;
         private bool restartLocked = false;
@@ -124,13 +124,15 @@ namespace Computers
         {
             network = new LuaNet(this);
         }
-
+        private void InitializeDefualtAPIALoders() 
+        {
+            defaultAPILoaders = new IAPILoader[] { network , this  };
+        }
         private void InitializeShell()
         {
-            //Get the default API loaders and any externally assigned ones
-            IAPILoader[] apiLoaders = defaultAPILoaders.Concat(GetExternalAPI(APILoaders)).ToArray();
+            
 
-            currentShell = new Shell(shellInitializationString, apiLoaders, this, shellLines).Start();
+            currentShell = new Shell(shellInitializationString, this, shellLines).Start();
             shells = new List<Shell> { currentShell };
         }
 
@@ -263,10 +265,13 @@ namespace Computers
             yield return new WaitForSeconds(0.05f);
         }
 
-        private IAPILoader[] GetExternalAPI(List<MonoBehaviour> monos)
+        public IAPILoader[] GetAPILoaders()
         {
             List<IAPILoader> loadersList = new List<IAPILoader>();
-            foreach (MonoBehaviour monoBehaviour in monos) 
+
+            loadersList.AddRange(defaultAPILoaders);
+
+            foreach (MonoBehaviour monoBehaviour in APILoaders) 
             {
                 if (monoBehaviour != null && monoBehaviour is IAPILoader)
                     loadersList.Add(monoBehaviour as IAPILoader);

@@ -238,5 +238,4 @@ public static class Utility
         {
             return Input.GetKeyDown(k) || Input.GetKey(k);
         }
-    }
 }
