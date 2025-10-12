@@ -17,7 +17,8 @@ public class UnityMainThreadDispatcher : MonoBehaviour
         {
             Instance = new GameObject("MainThreadDispatcher").AddComponent<UnityMainThreadDispatcher>();
             DontDestroyOnLoad(Instance.gameObject);
-        }   
+            Computers.ComputerData.mainThreadDispatcher = Instance;
+        }           
     }
 
     public static void Enqueue(Action action)
@@ -42,7 +43,7 @@ public class UnityMainThreadDispatcher : MonoBehaviour
   
     public static void AwaitAction(Action a)
     {
-        ActionAwaiter awaiter = new ActionAwaiter(a);
+        UMTDActionAwaiter awaiter = new UMTDActionAwaiter(a);
 
         while (!awaiter.finished) { }
     }
