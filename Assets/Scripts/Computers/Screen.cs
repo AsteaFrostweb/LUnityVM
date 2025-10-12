@@ -13,14 +13,15 @@ namespace Computers
         private Canvas screenCanvas;
         private Camera screenCamera;
         private TextMeshProUGUI screenText;
-
+        private int fontSize;
 
         // Hidden text box for calculating wrapped lines
         private TextMeshProUGUI hiddenTextBox;
-        public Screen(MeshRenderer mesh, int2 size)
+        public Screen(MeshRenderer mesh, int2 size, int _fontSize)
         {
             screenMesh = mesh;
             screenSize = size;
+            fontSize = _fontSize;
             CreateScreen();
         }
 
@@ -53,7 +54,7 @@ namespace Computers
             screenText.rectTransform.anchorMax = new Vector2(1, 1); // Top-right corner
             screenText.rectTransform.offsetMin = new Vector2(0, 0); // Left and bottom offsets
             screenText.rectTransform.offsetMax = new Vector2(0, 0); // Right and top offsets
-            screenText.fontSize = 20;
+            screenText.fontSize = fontSize;
 
             hiddenTextBox = new GameObject("HiddenText", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
             hiddenTextBox.transform.SetParent(screenCanvas.transform, false);
@@ -63,7 +64,7 @@ namespace Computers
             hiddenTextBox.rectTransform.anchorMax = new Vector2(1, 1); // Top-right corner
             hiddenTextBox.rectTransform.offsetMin = new Vector2(0, 0); // Left and bottom offsets
             hiddenTextBox.rectTransform.offsetMax = new Vector2(0, 0); // Right and top offsets
-            hiddenTextBox.fontSize = 20;
+            hiddenTextBox.fontSize = fontSize;
 
 
             screenMesh.material.mainTexture = screenRenderTex;

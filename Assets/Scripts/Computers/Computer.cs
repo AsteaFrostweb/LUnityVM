@@ -46,6 +46,8 @@ namespace Computers
         public MeshRenderer screenMesh;
         [Tooltip("The size of the screen render texture")]
         public int2 screenSize;
+        public int fontSize = 16;
+
         //---STRUCTURAL---
         [Header("Structural")]
         public float inspectorMaxHealth;
@@ -111,7 +113,7 @@ namespace Computers
         }
         private void InitializeScreen()
         {
-            screen = new Screen(screenMesh, screenSize);
+            screen = new Screen(screenMesh, screenSize, fontSize);
         }
 
         private void InitializeEventSystem()
