@@ -1,6 +1,6 @@
 # LUnityVM
 
-**LUnityVM** is a Unity plugin that allows you to create fully-featured virtual computers inside your Unity projects, powered by Lua scripting. Each computer has its own filesystem, event system, networked communication (LNet), and multi-instance shell terminals — perfect for moddable games, in-game scripting systems, or Minecraft-style Lua programmable computers.
+**LUnityVM** is a Unity plugin that allows you to create fully-featured virtual computers inside your Unity projects, powered by Lua scripting. Each computer has its own filesystem, event system, networked communication (LNet), and multi-instance shell terminals — perfect for moddable games, in-game scripting systems, or InGame Lua programmable computers.
 
 ---
 
@@ -11,7 +11,7 @@
   - Fully isolated **Lua virtual machine** per computer.
 
 - **File System**
-  - Virtual filesystem per computer for scripts, configs, and assets.
+  - Virtual filesystem per Shell instance for file IO.
   - Lua-accessible API for reading, writing, and listing files and directories.
 
 - **Event System**
@@ -19,7 +19,8 @@
   - Scripts can subscribe to and dispatch events.
 
 - **Inter-Computer Communication (LNet)**
-  - Broadcast or targeted events between computers in the same scene.
+  - Send and receive "luanet" event from one pc to another
+  - Includes Port specification to allow communications with individual shell instances on a single computer
 
 - **Shell Terminals**
   - Multiple shell instances per computer.
@@ -38,43 +39,24 @@
 
 ## Installation
 
-1. Clone or download this repository into your Unity `Packages` or `Assets` folder.
-2. Import NLua and KeraLua (via Unity Package Manager or DLLs).
-3. Add a `ComputerManager` prefab or component to your scene to start creating virtual computers.
+1. Clone or download this repository to your machine.
+2. Add it as a project via Unity Hub.
+3. Load project and Sample Scene.
+4. (IF NEEDED) Import NLua and KeraLua (Follow guide depending on Unity version and OS).
+
+   
 
 ---
 
 ## Getting Started
 
-```csharp
-using LUnityVM;
-
-public class Example : MonoBehaviour
-{
-    void Start()
-    {
-        // Create a new computer
-        var computer = ComputerManager.CreateComputer();
-
-        // Run a Lua script in a shell
-        var shell = computer.OpenShell();
-        shell.RunScript("print('Hello from Lua!')");
-
-        // Send an event to another computer
-        computer.LNet.BroadcastEvent("HelloEvent", "Hello from Computer 1!");
-    }
-}
-```
+- If youre already reading this then I'm sure you can figure it out.
 
 ## Planned Features / Roadmap
 
- - Save/load virtual filesystem state.
-
- - Lua modules per computer.
-
- - Customizable terminal UI components.
-
- - Advanced LNet networking (optional cross-scene or cross-project).
+- Improved Shell features (Cursor, More commands)
+- Complete File System API
+- Create some test projects to showcase package
 
 ## Contributing
 

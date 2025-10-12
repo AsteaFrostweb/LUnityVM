@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActionAwaiter 
+//UNITY MAIN THREAD DISPATCHER ACTION AWAITER -  Used by UMTD AwaitAction function.
+public class UMTDActionAwaiter 
 {
     public bool finished { get; private set; } = false;
     private Action action;
 
-    public ActionAwaiter(Action _action) 
+    public UMTDActionAwaiter(Action _action) 
     {
         action = _action;
 
@@ -18,13 +19,5 @@ public class ActionAwaiter
     {
         action.Invoke();
         finished = true;
-    }
-
-
-    public static void AwaitAction(Action a) 
-    {
-        ActionAwaiter awaiter = new ActionAwaiter(a);
-
-        while (!awaiter.finished) { }
     }
 }

@@ -4,17 +4,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
-namespace Game.Utility
+public static class Utility 
 {
-    public static class Utility
+    public static LuaTable CreateTable(Lua lua) => CreateTable(lua, "");
+    public static LuaTable CreateTable(Lua lua, string name)
     {
-        public static LuaTable CreateTable(Lua lua, string name)
-        {
-            lua.NewTable(name);
-            return lua.GetTable(name);
-        }
+        lua.NewTable(name);
+        return lua.GetTable(name);
+    }
 
 
         public static T[] ShiftArray<T>(T[] arr, T append)

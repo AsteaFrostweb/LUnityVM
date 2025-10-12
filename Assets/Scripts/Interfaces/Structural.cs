@@ -57,14 +57,10 @@ public abstract class Structural : MonoBehaviour, IAPILoader
     }
     public virtual void AddAPI(Lua lua)
     {
-        LuaTable structuralAPI = CreateTable(lua, "structural");
-        structuralAPI["getCondition"] = lua.RegisterFunction("structural.getCondition", this, typeof(Structural).GetMethod("GetCondition"));
-        structuralAPI["getMaxHealth"] = lua.RegisterFunction("structural.getMaxHealth", this, typeof(Structural).GetMethod("GetMaxHealth"));
-        structuralAPI["getHealth"] = lua.RegisterFunction("structural.getHealth", this, typeof(Structural).GetMethod("GetHealth"));
+        new LuaAPI(lua, "structure")
+            .RegisterFunction("getCondition", this, nameof(GetCondition))
+            .RegisterFunction("getMaxHealth", this, nameof(GetMaxHealth))
+            .RegisterFunction("getHealth", this, nameof(GetHealth));      
     }
-    private LuaTable CreateTable(Lua lua, string name)
-    {
-        lua.NewTable(name);
-        return lua.GetTable(name);
-    }
+
 }

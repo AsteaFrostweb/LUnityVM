@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnityMainThreadDispatcher : MonoBehaviour
@@ -8,17 +9,16 @@ public class UnityMainThreadDispatcher : MonoBehaviour
 
     public static UnityMainThreadDispatcher Instance { get; private set; }
 
-    private void Awake()
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void InitializeInstance()
     {
         if (Instance == null)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+            Instance = new GameObject("MainThreadDispatcher").AddComponent<UnityMainThreadDispatcher>();
+            DontDestroyOnLoad(Instance.gameObject);
+            Computers.ComputerData.mainThreadDispatcher = Instance;
+        }           
     }
 
     public static void Enqueue(Action action)
@@ -38,5 +38,13 @@ public class UnityMainThreadDispatcher : MonoBehaviour
                 executionQueue.Dequeue().Invoke();
             }
         }
+    }
+
+  
+    public static void AwaitAction(Action a)
+    {
+        UMTDActionAwaiter awaiter = new UMTDActionAwaiter(a);
+
+        while (!awaiter.finished) { }
     }
 }
