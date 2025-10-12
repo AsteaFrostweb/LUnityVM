@@ -44,7 +44,8 @@ public class FirstPersonSelectionController : MonoBehaviour
         if (Utility.GetKeyOrDown(KeyCode.F1)) 
         {
     
-            GameData.currentFocus = Focus.BASE_FLIGHT;
+            //Set ID to -1 to mean no machine is selected
+            GameData.currentFocusedMachine = -1;
         }
     }
 }

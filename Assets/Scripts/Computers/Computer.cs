@@ -95,8 +95,9 @@ namespace Computers
         //Function to set this pc as the current input focus
         public void SetFocus()
         {
-            GameData.currentFocus = new Focus(InputFocus.COMPUTER, ID.ToString());
+            GameData.currentFocusedMachine = ID;
         }
+        public bool IsFocus() => GameData.currentFocusedMachine == ID;
 
         //---Initalizing methods---
         private void InitializeStructural()
@@ -159,7 +160,7 @@ namespace Computers
             if
             (
                 !restartLocked && //Computer isnt locked from restarting
-                IsCurrentFocus() && //If the player is focusing this computer 
+                IsFocus() && //If the player is focusing this computer 
                 Input.GetKey(KeyCode.R) && //Is holding R
                (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) //Is holding ctrl
             )
@@ -272,7 +273,7 @@ namespace Computers
             return ans;
         }
 
-        public bool IsCurrentFocus() => GameData.currentFocus.Equals(InputFocus.COMPUTER, ID.ToString());
+
 
         public bool HasNetworkDevice()
         {

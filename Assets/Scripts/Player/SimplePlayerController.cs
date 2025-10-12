@@ -26,7 +26,8 @@ public class SimplePlayerController : MonoBehaviour
 
     void Update()
     {
-        if (GameData.currentFocus.inputFocus != InputFocus.FLIGHT)
+        //currentFocudsedMachine = -1 if there is no COmpuiter currently selected by player
+        if (GameData.currentFocusedMachine != -1)
             return;
 
         HandleMovement();

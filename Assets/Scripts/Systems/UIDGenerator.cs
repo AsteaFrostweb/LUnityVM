@@ -8,6 +8,7 @@ public class UIDGenerator
     private static readonly object _lock = new();
     private static readonly HashAlgorithm _sha = SHA256.Create();
 
+    //Generate's a 64 Character UID
     public static string GenerateUID()
     {
         lock (_lock)

@@ -2,20 +2,12 @@
 using NLua;
 using NLua.Exceptions;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
-using System.Threading.Tasks;
-using TMPro;
 using Unity.VisualScripting;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
-using UnityEngine.InputSystem.Android;
-using UnityEngine.Rendering;
 
 namespace Computers
 {
@@ -43,7 +35,7 @@ namespace Computers
         private Thread mainThread;
         public bool isRunning => mainThread != null;
         CancellationTokenSource cts;
-    
+
 
         private string shellInitializationString;
 
@@ -135,7 +127,7 @@ namespace Computers
                 Write($"<color=yellow>{currentDirectory}\\:</color>");
                 Sleep(0.2f); //Small delay for preventing re-reading of previos keydown events
                 string cmd = ReadLine();
-                ParseCommand(cmd);                
+                ParseCommand(cmd);
             }
         }
 
@@ -441,7 +433,7 @@ namespace Computers
         {
             while (!cts.IsCancellationRequested)
             {
-                if (GameData.currentFocus.inputFocus == InputFocus.COMPUTER && GameData.currentFocus.identifier == host.ID.ToString())
+                if (host.IsFocus())
                 {
                     ComputerEvent ev = host.eventSystem.PullEvent("key_down", "key_hold");
                     if (ev == null) continue;
@@ -462,7 +454,7 @@ namespace Computers
         {
             while (true)
             {
-                if (GameData.currentFocus.inputFocus == InputFocus.COMPUTER && GameData.currentFocus.identifier == host.ID.ToString())
+                if (host.IsFocus())
                 {
                     ComputerEvent ev = host.eventSystem.PullEvent("key_down");
                     if (ev == null) continue;
@@ -590,7 +582,7 @@ namespace Computers
                 return false;
             }
         }
-   
+
 
         // ----------------------- LUA API -----------------------
         public void AddAPI(Lua lua)
@@ -611,6 +603,6 @@ namespace Computers
 
 
 
-     
+
     }
 }

@@ -153,7 +153,7 @@ namespace Computers
 
         public void GetInputEvents()
         {
-            if (!(GameData.currentFocus.inputFocus == InputFocus.COMPUTER && GameData.currentFocus.identifier == host.ID.ToString())) return;
+            if (!host.IsFocus()) return; //Return if the computer is not the current focus of the players inputs
             if (events == null) return;
 
             bool shiftPressed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);

@@ -15,7 +15,7 @@ public class SelectableTextUpdater : MonoBehaviour
     {
         if (textMesh != null) 
         {
-            if(GameData.currentFocus.inputFocus == InputFocus.FLIGHT)
+            if(GameData.currentFocusedMachine == -1)
                 textMesh.text = GameData.currentSelectable?.actionText;
             else
                 textMesh.text = "";
