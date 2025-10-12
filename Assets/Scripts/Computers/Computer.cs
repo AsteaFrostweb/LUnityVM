@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using TMPro;
@@ -34,14 +35,17 @@ namespace Computers
         [Tooltip("The in game ID of the computer")]
         public int inspectorID;
         [Tooltip("Weather the computer is on or off (currently non working)")]
-        public Computer.State state;
+        public Computer.State state;  
+        [Tooltip("The time you need to hold ctrl+r to restart the selected computer")]
+        public float restartTime = 1.0f;
+        [Tooltip("The IAPILoader objects you with to add to lua API")]
+        public List<MonoBehaviour> APILoaders = new List<MonoBehaviour>();
+
+        [Header("Screen")]
         [Tooltip("The mesh to display the computer screen render texture on")]
         public MeshRenderer screenMesh;
         [Tooltip("The size of the screen render texture")]
         public int2 screenSize;
-        [Tooltip("The time you need to hold ctrl+r to restart the selected computer")]
-        public float restartTime = 1.0f;
-
         //---STRUCTURAL---
         [Header("Structural")]
         public float inspectorMaxHealth;
@@ -82,11 +86,11 @@ namespace Computers
 
        
 
-        public string localPath { get { return GameData.ActiveSavePath() + ID.ToString() + "/"; } }
+        public string localPath { get { return ComputerData.ActiveSavePath() + ID.ToString() + "/"; } }
 
         public string PATH { get; private set; } = "rom/programs/";
 
-        public object[] defaultAPILoaders;
+        public IAPILoader[] defaultAPILoaders;
 
         private float restartInputElapsedTime = 0f;
         private bool restartLocked = false;
@@ -95,9 +99,9 @@ namespace Computers
         //Function to set this pc as the current input focus
         public void SetFocus()
         {
-            GameData.currentFocusedMachine = ID;
+            ComputerData.currentFocusedMachine = ID;
         }
-        public bool IsFocus() => GameData.currentFocusedMachine == ID;
+        public bool IsFocus() => ComputerData.currentFocusedMachine == ID;
 
         //---Initalizing methods---
         private void InitializeStructural()
@@ -121,9 +125,11 @@ namespace Computers
 
         private void InitializeShell()
         {
-            currentShell = new Shell(shellInitializationString, defaultAPILoaders, this, shellLines).Start();
-            shells = new List<Shell> { currentShell };
+            //Get the default API loaders and any externally assigned ones
+            IAPILoader[] apiLoaders = defaultAPILoaders.Concat(GetExternalAPI(APILoaders)).ToArray();
 
+            currentShell = new Shell(shellInitializationString, apiLoaders, this, shellLines).Start();
+            shells = new List<Shell> { currentShell };
         }
 
         //---MONOBEHAVIOR FUNCTIONS---
@@ -236,23 +242,16 @@ namespace Computers
         }
         private IEnumerator RestartCoroutine()
         {
-
-
             yield return new WaitForSeconds(0.05f);
-
 
             Stop();
 
-
-            InitializeStructural(); //structural
-
+            InitializeStructural(); 
 
             sharedMemory = new ConcurrentDictionary<string, object>();
+   
 
-
-            //Start new shell
-
-            InitializeShell(); //Shell
+            InitializeShell(); 
 
             //Make sure we dont immediatley re-restart once we unlock the restart
             restartInputElapsedTime = 0f;
@@ -260,6 +259,17 @@ namespace Computers
             restartLocked = false;  //Unlock the restart
             inputLocked = false; //Unlock the input
             yield return new WaitForSeconds(0.05f);
+        }
+
+        private IAPILoader[] GetExternalAPI(List<MonoBehaviour> monos)
+        {
+            List<IAPILoader> loadersList = new List<IAPILoader>();
+            foreach (MonoBehaviour monoBehaviour in monos) 
+            {
+                if (monoBehaviour != null && monoBehaviour is IAPILoader)
+                    loadersList.Add(monoBehaviour as IAPILoader);
+            }
+            return loadersList.ToArray();
         }
 
         public bool RegisterComputer()
@@ -272,8 +282,6 @@ namespace Computers
             computers.TryGetValue(id, out ans);
             return ans;
         }
-
-
 
         public bool HasNetworkDevice()
         {

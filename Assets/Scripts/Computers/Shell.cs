@@ -44,7 +44,7 @@ namespace Computers
         public string currentDirectoryFullPath { get { return Path.Combine(host.localPath, currentDirectory); } }
         private Dictionary<string, Action<string[]>> shellBaseCommands;
 
-        public object[] defaultAPILoaders;
+        public IAPILoader[] defaultAPILoaders;
 
         //represent weather the _ is current added to the end of lines[cursorY]
         private bool cursorActive = false;
@@ -71,7 +71,7 @@ namespace Computers
             InitializeShellBaseCommands();
         }
         // Constructor with API loaders, host, and line count
-        public Shell(string _shellInitializationString, object[] apiLoaders, Computer _host, int lineCount)
+        public Shell(string _shellInitializationString, IAPILoader[] apiLoaders, Computer _host, int lineCount)
             : this(_shellInitializationString, _host) // calls previous constructor
         {
             host = _host;
@@ -135,7 +135,7 @@ namespace Computers
         // ------------------------ INITIALIZATION -----------------------
         private void InitializeDefualtAPILoaders()
         {
-            defaultAPILoaders = new object[] { fileSystem, this, host.network };
+            defaultAPILoaders = new IAPILoader[] { fileSystem, this, host.network };
         }
         private void InitializeFileSystem(Computer _host)
         {
