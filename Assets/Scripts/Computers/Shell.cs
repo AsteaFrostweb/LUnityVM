@@ -39,7 +39,7 @@ namespace Computers
 
         private string shellInitializationString;
 
-        private string currentDirectory = "";
+        public string currentDirectory { get; private set; } = "";
         public string CurrentDirectoryExposed() => currentDirectory;
         public string currentDirectoryFullPath { get { return Path.Combine(host.localPath, currentDirectory); } }
         private Dictionary<string, Action<string[]>> shellBaseCommands;
@@ -149,7 +149,10 @@ namespace Computers
             {
                 {"ls", ListDirectory },
                 {"cd", ChangeDirectory },
-                { "cls", CLS }
+                { "cls", CLS },
+                { "isrom", host.DisplayIfCurrentDirectoryIsROM},
+                { "mkdir", CreateDirectoryExposed},
+                { "rmdir", RemoveDirectoryExposed}
             };
         }
         private void InitializeLuaEnviroment(IAPILoader[] apiLoaders)
@@ -171,7 +174,32 @@ namespace Computers
 
 
 
-        // ------------------------ DIRECTORY TRAVERSAL -----------------------
+        // ------------------------ DIRECTORY -----------------------#
+        public void RemoveDirectoryExposed(string[] args)
+        {
+            if (args.Length < 2)
+            {
+                WriteLineError("Syntax: rmdir [path]");
+                return;
+            }
+            else
+            {
+                fileSystem.DeleteDirectory(args[1]);
+            }
+        }
+        public void CreateDirectoryExposed(string[] args) 
+        {
+            if (args.Length < 2)
+            {
+                WriteLineError("Syntax: mkdir [path]");
+                return;
+            }
+            else 
+            {
+                WriteLine("Creating directory at:" + args[1]);
+                fileSystem.CreateDirectory(args[1]);
+            }
+        } 
         public void GotoParentDirectory()
         {
 
@@ -552,6 +580,11 @@ namespace Computers
                 }
 
             }
+        }
+
+        public string ToGlobalPath(string localPath)
+        {
+            return Path.Combine(currentDirectoryFullPath ,localPath);
         }
 
         //Sleeps for seconds

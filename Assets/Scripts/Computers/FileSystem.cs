@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Windows.WebCam;
 using static UnityEditor.Handles;
 
 namespace Computers
@@ -34,18 +35,6 @@ namespace Computers
             else { Debug.Log("FS const: directory exists: YES,   rootpath:" + rootPath); }
         }
 
-        public bool CreateDirectory(string path)
-        {
-
-            if (!Directory.Exists(Path.Combine(rootPath, path)))
-            {
-
-            }
-            else
-            {
-            }
-            return false;
-        }
 
         public string[] GetFiles(string path)
         {
@@ -108,7 +97,7 @@ namespace Computers
 
                 switch (readWrite)
                 {
-                    case "read":
+                    case "read":                        
                         try
                         {
                             currentStream = File.Open(localPath, FileMode.Open, FileAccess.Read);
@@ -121,6 +110,11 @@ namespace Computers
                         }
                         break;
                     case "write":
+                        if (IsROMPath(path))
+                        {
+                            host.WriteLineError("Unable to open stream with write permissions to file within ROM");
+                            return false;
+                        }
                         try
                         {
                             currentStream = File.Open(localPath, FileMode.Open, FileAccess.Write);
@@ -133,6 +127,11 @@ namespace Computers
                         }
                         break;
                     case "readwrite":
+                        if (IsROMPath(path))
+                        {
+                            host.WriteLineError("Unable to open stream with write permissions to file within ROM");
+                            return false;
+                        }
                         try
                         {
                             currentStream = File.Open(localPath, FileMode.Open, FileAccess.ReadWrite);
@@ -173,6 +172,157 @@ namespace Computers
             return line;
         }
 
+
+        // Writes text (without newline)
+        public bool Write(string text)
+        {
+            if (currentStream == null || !currentStream.CanWrite)
+                return false;
+
+          
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(currentStream, System.Text.Encoding.UTF8, 1024, true))
+                {
+                    writer.Write(text);
+                    writer.Flush();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error writing to file: {e}");
+                host.WriteLineError("Error writing to file: " + e.Message);
+                return false;
+            }
+        }
+
+        // Writes text with newline
+        public bool WriteLine(string text)
+        {
+            if (currentStream == null || !currentStream.CanWrite)
+                return false;
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(currentStream, System.Text.Encoding.UTF8, 1024, true))
+                {
+                    writer.WriteLine(text);
+                    writer.Flush();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error writing line to file: {e}");
+                host.WriteLineError("Error writing line to file: " + e.Message);
+                return false;
+            }
+        }
+        public bool CreateFile(string path)
+        {
+            if (IsROMPath(host.currentDirectory + "/" + path))
+            {
+                host.WriteLineError("Access denied: /rom/ is read-only");
+                return false;
+            }
+            path = host.ToGlobalPath(path); //After checkign if its a rom path covert into global path for file creation
+            try
+            {
+                string dir = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                using (FileStream fs = File.Create(path)) { }
+                return true;
+            }
+            catch (Exception e)
+            {
+                host.WriteLineError("Error creating file: " + e.Message);
+                return false;
+            }
+        }
+
+        public bool DeleteFile(string path)
+        {
+            if (IsROMPath(host.currentDirectory + "/" + path))
+            {
+                host.WriteLineError("Access denied: Cannot delete files in /rom/");
+                return false;
+            }
+            path = host.ToGlobalPath(path); //After checkign if its a rom path covert into global path for file creation
+
+            try
+            {
+                if (!File.Exists(path)) return false;
+                File.Delete(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                host.WriteLineError("Error deleting file: " + e.Message);
+                return false;
+            }
+        }
+
+        public bool FileExists(string path)
+        {
+            return File.Exists(path);
+        }
+
+        // --- DIRECTORY FUNCTIONS ---
+
+        public bool CreateDirectory(string path)
+        {
+            Debug.Log("Atemtpting to create directory at local path:" + path);
+            if (IsROMPath(host.currentDirectory+ "/" + path))
+            {                
+                host.WriteLineError("Access denied: Cannot create directories in /rom/");
+                return false;
+            }
+            path = host.ToGlobalPath(path); //After checkign if its a rom path covert into global path for file creation
+
+            try
+            {
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                host.WriteLineError("Error creating directory: " + e.Message);
+                return false;
+            }
+        }
+
+        public bool DeleteDirectory(string path)
+        {
+            if (IsROMPath(host.currentDirectory + "/" + path))
+            {
+                host.WriteLineError("Access denied: Cannot delete directories in /rom/");
+                return false;
+            }
+            path = host.ToGlobalPath(path); //After checkign if its a rom path covert into global path for file creation
+
+            try
+            {
+                if (!Directory.Exists(path)) return false;
+                Directory.Delete(path, true);
+                return true;
+            }
+            catch (Exception e)
+            {
+                host.WriteLineError("Error deleting directory: " + e.Message);
+                return false;
+            }
+        }
+
+        public bool DirectoryExists(string path)
+        {
+            return Directory.Exists(path);
+        }
+
         public void AddAPI(Lua lua)
         {
             new LuaAPI(lua, "fs")
@@ -180,11 +330,25 @@ namespace Computers
                 .RegisterFunction("getFiles", this, nameof(GetFiles))
                 .RegisterFunction("open", this, nameof(OpenFile))
                 .RegisterFunction("close", this, nameof(CloseStream))
-                .RegisterFunction("readLine", this, nameof(ReadLine));
-
+                .RegisterFunction("readLine", this, nameof(ReadLine))
+                .RegisterFunction("write", this, nameof(Write))
+                .RegisterFunction("writeLine", this, nameof(WriteLine))
+                .RegisterFunction("createFile", this, nameof(CreateFile))
+                .RegisterFunction("deleteFile", this, nameof(DeleteFile))
+                .RegisterFunction("fileExists", this, nameof(FileExists))
+                .RegisterFunction("createDirectory", this, nameof(CreateDirectory))
+                .RegisterFunction("deleteDirectory", this, nameof(DeleteDirectory))
+                .RegisterFunction("directoryExists", this, nameof(DirectoryExists));
         }
 
+        public static bool IsROMPath(string path) 
+        {
+            if (path == null) return false;
+            string[] seperatedPath = path.Split('/', '\\');
+            if (seperatedPath != null && seperatedPath.Length > 0 && seperatedPath[0] == "rom") return true;
 
+            return false;
+        }
 
     }
 }
