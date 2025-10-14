@@ -207,6 +207,11 @@ namespace Computers
         {
             return ID;
         }
+        public void DisplayIfCurrentDirectoryIsROM(string[] args) 
+        {
+            string ans = FileSystem.IsROMPath(currentShell.currentDirectory) ? "Yes" : "No";            
+            currentShell.WriteLine("Current Directory is within ROM: " + ans);
+        }
         public LuaTable GetPosition()
         {
             Vector3 position = new Vector3();
@@ -306,6 +311,7 @@ namespace Computers
             sharedMemory = null;
         }
 
+     
         private void OnDestroy()
         {
             Stop();
