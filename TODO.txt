@@ -1,0 +1,3 @@
+- MULTIPLE SHELL INSTANCES (UI INDICATOR, ACTUAL FUNCTIONALITY, Ctrl + -> & Ctrl + <- to swap shell)
+- Perhipherals (Monitors, Speakers)
+- Test Scripts (Lua scripts to test each API fully)
